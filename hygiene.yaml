@@ -1,0 +1,382 @@
+# hygiene.yaml — declared, drift-validated hygiene posture for planker.
+# Schema: ~/.claude/skills/hygiene/SKILL.md. Validate with `/hygiene`.
+# Honest init: floors are held tiers only. Gaps sit above the floor.
+#
+# Reality: 51-line stdlib stdin CLI (Apache-2.0 LICENSE + README, squash-only
+# GitHub merges). No tests, CI, .gitignore, pyproject, scanners, tags, or
+# agent files. Host ruff is not a repo gate and currently fails.
+
+schema_version: 1
+
+repo: planker
+aspires: 3
+floors:            # per-dimension held-tier ratchet; below floor => DRIFT
+  correctness: 0   # no tests; py_compile/smoke are not an oracle
+  security: 1      # no committed secrets; GitHub scanning off
+  quality: 0       # no ruff config or CI lint
+  deps: 0          # stdlib only; no lockfile or Dependabot
+  release: 0       # no tags, CHANGELOG, or release workflow
+  governance: 1    # LICENSE + README; no .gitignore
+  build: 0         # shebang script; no pyproject or Actions
+  docs: 0          # README is governance; no docs oracle
+  perf: 0          # tiny CLI; no benches
+  vcs: 0           # unprotected master; no committed hooks
+  agent: 0         # no AGENTS.md / CLAUDE.md / bullseye.yaml
+
+tiers:
+  1: baseline    # LICENSE + README + .gitignore; tests build & run
+  2: maintained  # full matrix, examples run, lint/format, release + governance
+  3: hardened    # formal specs, security scanning, SBOM/signing, fuzzing, perf
+
+items:
+
+  # ============================== CORRECTNESS =============================
+  - id: correctness.syntax
+    dim: correctness
+    desc: planker.py parses as Python 3
+    state: present
+    cadence: continuous
+    enforce: warning
+    tier: 1
+    evidence: {command: python3 -m py_compile planker.py}
+
+  - id: correctness.smoke
+    dim: correctness
+    desc: Shipped path allocates the committed sample job (exit 0)
+    state: present
+    cadence: continuous
+    enforce: warning
+    tier: 1
+    evidence: {command: python3 planker.py < input.json}
+
+  - id: correctness.tests
+    dim: correctness
+    desc: A test suite asserts allocation, leftover, and unallocated millimetres
+    state: planned
+    cadence: continuous
+    enforce: blocking
+    tier: 1
+    reason: >-
+      pytest collects 0 tests; no tests/ directory. Syntax and the input.json
+      smoke are not leftover/unallocated invariants (ENT-001).
+    evidence: {absent: {file: {path: tests}}}
+
+  - id: correctness.ci
+    dim: correctness
+    desc: Tests run on every push/PR in GitHub Actions
+    state: planned
+    cadence: continuous
+    enforce: blocking
+    tier: 2
+    reason: Actions total_count is 0; no .github/workflows.
+    evidence: {absent: {ci_job: "ci.yml#test"}}
+
+  - id: correctness.fuzzing
+    dim: correctness
+    desc: Fuzz harnesses over the JSON input parser
+    state: skipped
+    cadence: continuous
+    enforce: informational
+    tier: 3
+    reason: Input is stdlib json.load of two integer bags; not worth a harness.
+    evidence: {absent: {file: {path: fuzz}}}
+
+  # =========================== SECURITY / SUPPLY ==========================
+  - id: security.no-committed-secrets
+    dim: security
+    desc: Env files, keys, and certs are never tracked
+    state: present
+    cadence: once-must-hold
+    enforce: blocking
+    tier: 1
+    evidence:
+      command: test -z "$(git ls-files '*.p8' '*.pem' '.env' '.env.*' '*.key')"
+
+  - id: security.github-secret-scan
+    dim: security
+    desc: GitHub secret scanning enabled on the public repo
+    state: planned
+    cadence: continuous
+    enforce: blocking
+    tier: 2
+    reason: Public repo; secret_scanning.status is disabled.
+    evidence:
+      absent:
+        gh_setting: {key: security_and_analysis.secret_scanning.status, equals: enabled}
+
+  - id: security.github-push-protection
+    dim: security
+    desc: GitHub secret-scanning push protection enabled
+    state: planned
+    cadence: continuous
+    enforce: blocking
+    tier: 2
+    reason: secret_scanning_push_protection.status is disabled.
+    evidence:
+      absent:
+        gh_setting:
+          {key: security_and_analysis.secret_scanning_push_protection.status, equals: enabled}
+
+  - id: security.secret-scan
+    dim: security
+    desc: Secret scanning (gitleaks) in pre-commit and/or CI
+    state: planned
+    cadence: continuous
+    enforce: blocking
+    tier: 3
+    reason: No gitleaks config; GitHub secret scanning is also off.
+    evidence: {absent: {scanner: {tool: gitleaks}}}
+
+  - id: security.sast-codeql
+    dim: security
+    desc: CodeQL static analysis
+    state: planned
+    cadence: continuous
+    enforce: warning
+    tier: 3
+    reason: No Actions workflows, so CodeQL is not enabled.
+    evidence: {absent: {ci_job: "ci.yml#codeql"}}
+
+  - id: security.dep-audit
+    dim: security
+    desc: Vulnerability scanning of third-party Python deps
+    state: skipped
+    cadence: periodic:30d
+    enforce: informational
+    tier: 3
+    reason: CPython stdlib only (json, sys); no third-party graph to audit.
+    evidence: {absent: {scanner: {tool: pip-audit}}}
+
+  # ============================== CODE QUALITY ============================
+  - id: quality.format
+    dim: quality
+    desc: Sources are ruff-format clean, enforced in CI
+    state: planned
+    cadence: continuous
+    enforce: warning
+    tier: 2
+    reason: No ruff.toml; host ruff format --check currently fails; not a repo gate.
+    evidence: {absent: {scanner: {tool: ruff}}}
+
+  - id: quality.lint
+    dim: quality
+    desc: ruff check is clean, enforced in CI
+    state: planned
+    cadence: continuous
+    enforce: warning
+    tier: 2
+    reason: Host ruff reports unused typing imports; no CI lint job.
+    evidence: {absent: {ci_step: {workflow: ci.yml, name: Ruff}}}
+
+  # =========================== DEPENDENCY HEALTH ==========================
+  - id: deps.dependabot
+    dim: deps
+    desc: Dependabot or GitHub vulnerability alerts watch a lockfile
+    state: planned
+    cadence: periodic:30d
+    enforce: informational
+    tier: 3
+    reason: >-
+      Stdlib-only; no pyproject/lockfile. Dependabot security updates are
+      disabled on the public repo.
+    evidence: {absent: {file: {path: .github/dependabot.yml}}}
+
+  # ========================== RELEASE & VERSIONING =======================
+  - id: release.changelog
+    dim: release
+    desc: A maintained CHANGELOG records user-visible changes per release
+    state: planned
+    cadence: per-release
+    enforce: warning
+    tier: 3
+    reason: History lives in git; no CHANGELOG.md and no git tags.
+    evidence: {absent: {file: {path: CHANGELOG.md}}}
+
+  - id: release.ci-built
+    dim: release
+    desc: Release artifacts are built by CI, never locally
+    state: planned
+    cadence: per-release
+    enforce: warning
+    tier: 3
+    reason: No release workflow; the product is a shebang script, not published.
+    evidence: {absent: {ci_job: "release.yml#build"}}
+
+  # ============================ GOVERNANCE / META ========================
+  - id: governance.license
+    dim: governance
+    desc: Apache-2.0 LICENSE present
+    state: present
+    cadence: once-must-hold
+    enforce: blocking
+    tier: 1
+    evidence: {file: {path: LICENSE, matches: 'Apache License'}}
+
+  - id: governance.readme
+    dim: governance
+    desc: README present
+    state: present
+    cadence: once-must-hold
+    enforce: blocking
+    tier: 1
+    evidence: {file: {path: README.md}}
+
+  - id: governance.gitignore
+    dim: governance
+    desc: .gitignore covers bytecode, ruff cache, and OS/IDE files
+    state: planned
+    cadence: once-must-hold
+    enforce: warning
+    tier: 2
+    reason: >-
+      No .gitignore. Local __pycache__/ and .ruff_cache/ are currently
+      untracked; a broad git add would commit them.
+    evidence: {absent: {file: {path: .gitignore}}}
+
+  - id: governance.squash-only
+    dim: governance
+    desc: Repo is squash-merge only, with delete-branch-on-merge
+    state: enforced
+    cadence: once-must-hold
+    enforce: blocking
+    tier: 2
+    evidence: {gh_setting: {key: allow_merge_commit, equals: false}}
+
+  - id: governance.security-md
+    dim: governance
+    desc: SECURITY.md documents the vulnerability-disclosure process
+    state: planned
+    cadence: once-must-hold
+    enforce: informational
+    tier: 3
+    reason: Public repo without a published disclosure policy yet.
+    evidence: {absent: {file: {path: SECURITY.md}}}
+
+  - id: governance.codeowners
+    dim: governance
+    desc: CODEOWNERS file for review routing
+    state: skipped
+    cadence: once-must-hold
+    enforce: informational
+    tier: 3
+    reason: Sole owner; no review-routing surface.
+    evidence: {absent: {file: {path: CODEOWNERS}}}
+
+  # ================================= BUILD ===============================
+  - id: build.ci
+    dim: build
+    desc: GitHub Actions compiles and smokes the script
+    state: planned
+    cadence: continuous
+    enforce: warning
+    tier: 2
+    reason: No .github/workflows; run path is local `python3 planker.py`.
+    evidence: {absent: {file: {path: .github/workflows/ci.yml}}}
+
+  - id: build.pyproject
+    dim: build
+    desc: Python project metadata declared in pyproject.toml
+    state: skipped
+    cadence: once-must-hold
+    enforce: informational
+    tier: 3
+    reason: >-
+      Shebang script, stdlib only. Packaging metadata is not needed until
+      this is installable.
+    evidence: {absent: {file: {path: pyproject.toml}}}
+
+  # ============================ DOCUMENTATION ============================
+  - id: docs.md-links
+    dim: docs
+    desc: Internal markdown links resolve (no dead cross-references)
+    state: planned
+    cadence: continuous
+    enforce: informational
+    tier: 3
+    reason: Small doc surface (README + one audit); no link checker or Makefile.
+    evidence: {absent: {file: {path: .github/workflows/docs.yml}}}
+
+  - id: docs.todo
+    dim: docs
+    desc: docs/TODO.md exists as the repo TODO sink
+    state: skipped
+    cadence: once-must-hold
+    enforce: informational
+    tier: 3
+    reason: Global convention bans TODO files; followable work belongs in bullseye.
+    evidence: {absent: {file: {path: docs/TODO.md}}}
+
+  # ============================== PERFORMANCE ===========================
+  - id: perf.benchmarks
+    dim: perf
+    desc: Benchmark suite exists
+    state: planned
+    cadence: per-release
+    enforce: informational
+    tier: 3
+    reason: Tiny greedy cutter; no hot path that warrants a bench suite.
+    evidence: {absent: {file: {path: benches}}}
+
+  # ============================== VCS / HISTORY =========================
+  - id: vcs.branch-protection
+    dim: vcs
+    desc: Default branch (master) is protected
+    state: planned
+    cadence: once-must-hold
+    enforce: warning
+    tier: 2
+    reason: master has no branch protection (API 404). Bus factor 1.
+    evidence:
+      absent:
+        {command: gh api repos/marcelocantos/planker/branches/master/protection}
+
+  - id: vcs.pre-commit-hook
+    dim: vcs
+    desc: Committed git hooks (scripts/hooks) gate locally before commit
+    state: planned
+    cadence: once-must-hold
+    enforce: informational
+    tier: 3
+    reason: No scripts/hooks; core.hooksPath is the default .git/hooks.
+    evidence: {absent: {file: {path: scripts/hooks/pre-commit}}}
+
+  # =================== AGENT-READINESS / ONBOARDING ====================
+  - id: agent.agents-md
+    dim: agent
+    desc: AGENTS.md present (project conventions discoverable by agents)
+    state: planned
+    cadence: once-must-hold
+    enforce: warning
+    tier: 1
+    reason: No AGENTS.md or CLAUDE.md; global agent files are not a substitute.
+    evidence: {absent: {file: {path: AGENTS.md}}}
+
+  - id: agent.bullseye
+    dim: agent
+    desc: bullseye.yaml present (convergence targets discoverable)
+    state: planned
+    cadence: once-must-hold
+    enforce: informational
+    tier: 2
+    reason: No bullseye.yaml; startup context reports the project is not initialized.
+    evidence: {absent: {file: {path: bullseye.yaml}}}
+
+  - id: agent.cli-help
+    dim: agent
+    desc: CLI exposes --help (and --help-agent where the fleet convention applies)
+    state: planned
+    cadence: once-must-hold
+    enforce: informational
+    tier: 2
+    reason: planker.py has no argument parser; it reads stdin JSON only.
+    evidence: {absent: {file: {path: planker.py, matches: '--help'}}}
+
+  - id: agent.claude-md
+    dim: agent
+    desc: CLAUDE.md present as a Claude-only adapter
+    state: skipped
+    cadence: once-must-hold
+    enforce: informational
+    tier: 3
+    reason: AGENTS.md is the canonical agent file once it exists; no Claude-only adapter needed.
+    evidence: {absent: {file: {path: CLAUDE.md}}}
