@@ -1,21 +1,425 @@
 {
   "example": true,
-  "title": "EXAMPLE — synthetic plasterboard job",
-  "note": "Not a real bill of materials. Counts and sizes are made up. Sheet sizes are typical Australian plasterboard, used only so the drawing has familiar proportions.",
+  "fictional": true,
+  "title": "EXAMPLE / FICTIONAL — spare room",
+  "story": "Fictional spare room, 3.6 m by 3.0 m and 2.7 m high. A wardrobe bulk on the west wall, a bulkhead along the window wall, one door and one window. Invented sizes, not a client job. On hand in this fiction: 11 sheets of 1200×2700 mm and 8 of 1200×2400 mm.",
+  "note": "EXAMPLE / FICTIONAL. Not a real bill of materials.",
   "kerf_mm": 3,
+  "room": {
+    "length": 3600,
+    "width": 3000,
+    "height": 2700,
+    "openings": [
+      {
+        "name": "Door",
+        "face": "south",
+        "u": 2400,
+        "v": 0,
+        "w": 820,
+        "h": 2040
+      },
+      {
+        "name": "Window",
+        "face": "north",
+        "u": 1200,
+        "v": 900,
+        "w": 1200,
+        "h": 1100
+      }
+    ]
+  },
   "available": [
-    {"count": 3, "w": 1200, "h": 2400},
-    {"count": 1, "w": 1350, "h": 3600},
-    {"count": 1, "w": 1200, "h": 2400},
-    {"count": 2, "w": 1200, "h": 3000}
+    {
+      "count": 11,
+      "w": 1200,
+      "h": 2700
+    },
+    {
+      "count": 8,
+      "w": 1200,
+      "h": 2400
+    }
   ],
   "desired": [
-    {"count": 1, "w": 2400, "h": 500, "grain": false},
-    {"count": 2, "w": 450, "h": 2400, "grain": true},
-    {"count": 1, "w": 1350, "h": 3000, "grain": false},
-    {"count": 2, "w": 1200, "h": 900, "grain": false},
-    {"count": 1, "w": 600, "h": 1200, "grain": false},
-    {"count": 1, "w": 800, "h": 500, "grain": false},
-    {"count": 1, "w": 1500, "h": 2800, "grain": false}
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 2700,
+      "grain": true,
+      "face": "east",
+      "name": "East wall",
+      "u": 0,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 2700,
+      "grain": true,
+      "face": "east",
+      "name": "East wall",
+      "u": 1200,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 600,
+      "h": 2700,
+      "grain": true,
+      "face": "east",
+      "name": "East wall",
+      "u": 2400,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 2700,
+      "grain": true,
+      "face": "south",
+      "name": "South wall, left",
+      "u": 0,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 2700,
+      "grain": true,
+      "face": "south",
+      "name": "South wall, beside the door",
+      "u": 1200,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 380,
+      "h": 2700,
+      "grain": true,
+      "face": "south",
+      "name": "South wall, right of the door",
+      "u": 3220,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 820,
+      "h": 660,
+      "grain": false,
+      "face": "south",
+      "name": "Over the door",
+      "u": 2400,
+      "v": 2040
+    },
+    {
+      "count": 1,
+      "w": 600,
+      "h": 2700,
+      "grain": true,
+      "face": "west",
+      "name": "West wall, south of the wardrobe",
+      "u": 0,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 2700,
+      "grain": true,
+      "face": "west",
+      "name": "West wall, north of the wardrobe",
+      "u": 1800,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 2700,
+      "grain": true,
+      "face": "robeFront",
+      "name": "Wardrobe front",
+      "u": 0,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 600,
+      "h": 2700,
+      "grain": true,
+      "face": "robeSouth",
+      "name": "Wardrobe return, south",
+      "u": 0,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 600,
+      "h": 2700,
+      "grain": true,
+      "face": "robeNorth",
+      "name": "Wardrobe return, north",
+      "u": 0,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 2400,
+      "grain": true,
+      "face": "north",
+      "name": "North wall, left of the window",
+      "u": 0,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 2400,
+      "grain": true,
+      "face": "north",
+      "name": "North wall, right of the window",
+      "u": 2400,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 900,
+      "grain": false,
+      "face": "north",
+      "name": "Under the window",
+      "u": 1200,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 400,
+      "grain": false,
+      "face": "north",
+      "name": "Over the window",
+      "u": 1200,
+      "v": 2000
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 600,
+      "grain": false,
+      "face": "ceiling",
+      "name": "Ceiling, south",
+      "u": 0,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 600,
+      "grain": false,
+      "face": "ceiling",
+      "name": "Ceiling, south",
+      "u": 1200,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 600,
+      "grain": false,
+      "face": "ceiling",
+      "name": "Ceiling, south",
+      "u": 2400,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 1200,
+      "grain": false,
+      "face": "ceiling",
+      "name": "Ceiling, over the room",
+      "u": 600,
+      "v": 600
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 1200,
+      "grain": false,
+      "face": "ceiling",
+      "name": "Ceiling, over the room",
+      "u": 1800,
+      "v": 600
+    },
+    {
+      "count": 1,
+      "w": 600,
+      "h": 1200,
+      "grain": false,
+      "face": "ceiling",
+      "name": "Ceiling, by the east wall",
+      "u": 3000,
+      "v": 600
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 700,
+      "grain": false,
+      "face": "ceiling",
+      "name": "Ceiling, by the bulkhead",
+      "u": 0,
+      "v": 1800
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 700,
+      "grain": false,
+      "face": "ceiling",
+      "name": "Ceiling, by the bulkhead",
+      "u": 1200,
+      "v": 1800
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 700,
+      "grain": false,
+      "face": "ceiling",
+      "name": "Ceiling, by the bulkhead",
+      "u": 2400,
+      "v": 1800
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 500,
+      "grain": false,
+      "face": "soffit",
+      "name": "Bulkhead soffit",
+      "u": 0,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 500,
+      "grain": false,
+      "face": "soffit",
+      "name": "Bulkhead soffit",
+      "u": 1200,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 500,
+      "grain": false,
+      "face": "soffit",
+      "name": "Bulkhead soffit",
+      "u": 2400,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 300,
+      "grain": false,
+      "face": "bulkhead",
+      "name": "Bulkhead face",
+      "u": 0,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 300,
+      "grain": false,
+      "face": "bulkhead",
+      "name": "Bulkhead face",
+      "u": 1200,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 300,
+      "grain": false,
+      "face": "bulkhead",
+      "name": "Bulkhead face",
+      "u": 2400,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 90,
+      "h": 2040,
+      "grain": false,
+      "face": "doorWestJamb",
+      "name": "Door jamb",
+      "u": 0,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 90,
+      "h": 2040,
+      "grain": false,
+      "face": "doorEastJamb",
+      "name": "Door jamb",
+      "u": 0,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 820,
+      "h": 90,
+      "grain": false,
+      "face": "doorHead",
+      "name": "Door head reveal",
+      "u": 0,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 100,
+      "h": 1100,
+      "grain": false,
+      "face": "winLeft",
+      "name": "Window jamb",
+      "u": 0,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 100,
+      "h": 1100,
+      "grain": false,
+      "face": "winRight",
+      "name": "Window jamb",
+      "u": 0,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 100,
+      "grain": false,
+      "face": "winSill",
+      "name": "Window sill",
+      "u": 0,
+      "v": 0
+    },
+    {
+      "count": 1,
+      "w": 1200,
+      "h": 100,
+      "grain": false,
+      "face": "winHead",
+      "name": "Window head reveal",
+      "u": 0,
+      "v": 0
+    }
   ]
 }

@@ -37,10 +37,13 @@ A phone page that lays rectangular panels onto rectangular stock sheets.
 The timber command above is unchanged. This planner does not read
 `input.json`.
 
-`example-plaster.json` is an **example / synthetic** job. The counts and
-sizes are made up. They are not a real bill of materials. The sheet sizes
-in that file (1200×2400, 1200×3000, 1350×3600 mm) are typical Australian
-plasterboard, used only so the drawing has familiar proportions.
+`example-plaster.json` is an **EXAMPLE / FICTIONAL** spare room, not a
+client job and not a real bill of materials. The room is made up: 3.6 m by
+3.0 m and 2.7 m high, with a wardrobe bulk on the west wall, a bulkhead
+along the window wall, one door, and one window. In that fiction the
+garage holds 11 sheets of 1200×2700 mm and 8 sheets of 1200×2400 mm.
+Those are typical Australian plasterboard sizes, used only so the drawing
+has familiar proportions.
 
 ```bash
 python3 plaster.py example-plaster.json
@@ -59,8 +62,14 @@ The first screen is the sheets to pull. Tick a row at the rack.
 **Share**, **Copy**, and **Print** sit in the bar at the bottom. Share
 sends the plain-text list. **Edit stock and panels** changes counts and
 millimetre width × height on the phone, and the list and the drawings
-update. **Restore example job** puts the synthetic example back. Edits
+update. **Restore example job** puts the fictional spare room back. Edits
 stay on that device until you restore.
+
+The page also draws a **room preview**. Each cut panel has one colour on
+its sheet and the same colour on the wall or ceiling it belongs to. Drag
+to turn the room, pinch to zoom, and tap a panel to mark it in both
+views. The door and the window are openings. This view is part of the
+fiction: it is the made-up spare room, not a measured site.
 
 Saw kerf is the named setting `kerf_mm`. The default is **3 mm**, about a
 circular-saw or panel-saw blade. Set it to **0** for score-and-snap, which

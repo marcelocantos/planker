@@ -81,12 +81,28 @@ def _sheet_row(row: object) -> tuple[int, int, int]:
     return count, width, height
 
 
-def _panel_row(row: object) -> tuple[int, int, int, bool]:
+def _panel_place(row: dict) -> dict | None:
+    if "face" not in row:
+        return None
+    face = row["face"]
+    name = row.get("name") or face
+    if not isinstance(face, str) or not face or not isinstance(name, str):
+        raise ValueError("face and name must be text")
+    u = _as_int(row["u"], "u")
+    v = _as_int(row["v"], "v")
+    if u < 0 or v < 0:
+        raise ValueError("u and v must be >= 0")
+    return {"face": face, "name": name, "u": u, "v": v}
+
+
+def _panel_row(row: object) -> tuple[int, int, int, bool, dict | None]:
+    place = None
     if isinstance(row, dict):
         count = _as_int(row["count"], "count")
         width = _as_int(row["w"], "w")
         height = _as_int(row["h"], "h")
         grain = _as_bool(row.get("grain", False), "grain")
+        place = _panel_place(row)
     elif isinstance(row, (list, tuple)) and len(row) in (3, 4):
         count = _as_int(row[0], "count")
         width = _as_int(row[1], "w")
@@ -96,9 +112,11 @@ def _panel_row(row: object) -> tuple[int, int, int, bool]:
         raise ValueError("each panel is count, width, height, and optional face lock")
     if count < 1:
         raise ValueError(ERR_COUNT)
+    if place and count != 1:
+        raise ValueError("a panel fixed on a room face has count 1")
     if width < 1 or height < 1 or width > LIMIT_MM or height > LIMIT_MM:
         raise ValueError(ERR_MM)
-    return count, width, height, grain
+    return count, width, height, grain, place
 
 
 def normalise_job(data: object, kerf_override: int | None = None) -> dict:
@@ -120,26 +138,34 @@ def normalise_job(data: object, kerf_override: int | None = None) -> dict:
     available = [_sheet_row(row) for row in data["available"]]
     desired = [_panel_row(row) for row in data["desired"]]
     sheet_n = sum(count for count, _, _ in available)
-    panel_n = sum(count for count, _, _, _ in desired)
+    panel_n = sum(count for count, _, _, _, _ in desired)
     if sheet_n > LIMIT_SHEETS:
         raise ValueError(ERR_SHEETS)
     if panel_n > LIMIT_PANELS:
         raise ValueError(ERR_PANELS)
     title = data.get("title") or "Plasterboard cut plan"
     note = data.get("note") or ""
-    if not isinstance(title, str) or not isinstance(note, str):
-        raise ValueError("title and note must be text")
-    return {
+    story = data.get("story") or ""
+    if not isinstance(title, str) or not isinstance(note, str) or not isinstance(story, str):
+        raise ValueError("title, note, and story must be text")
+    job = {
         "example": bool(data.get("example")),
+        "fictional": bool(data.get("fictional")),
         "title": title,
         "note": note,
+        "story": story,
         "kerf_mm": kerf,
         "available": [{"count": count, "w": width, "h": height} for count, width, height in available],
-        "desired": [
-            {"count": count, "w": width, "h": height, "grain": grain}
-            for count, width, height, grain in desired
-        ],
+        "desired": [],
     }
+    if isinstance(data.get("room"), dict):
+        job["room"] = data["room"]
+    for count, width, height, grain, place in desired:
+        item = {"count": count, "w": width, "h": height, "grain": grain}
+        if place:
+            item.update(place)
+        job["desired"].append(item)
+    return job
 
 
 def _rect(x: int, y: int, w: int, h: int) -> dict:
@@ -229,9 +255,13 @@ def pack_job(job: dict) -> dict:
     piece_i = 0
     for row in job["desired"]:
         for _ in range(row["count"]):
-            panels.append(
-                {"w": row["w"], "h": row["h"], "grain": row["grain"], "i": piece_i}
-            )
+            panel = {"w": row["w"], "h": row["h"], "grain": row["grain"], "i": piece_i}
+            if row.get("face"):
+                panel["face"] = row["face"]
+                panel["name"] = row.get("name") or row["face"]
+                panel["u"] = row["u"]
+                panel["v"] = row["v"]
+            panels.append(panel)
             piece_i += 1
     panels.sort(
         key=lambda panel: (
@@ -261,9 +291,7 @@ def pack_job(job: dict) -> dict:
                     if best is None or score < best[0]:
                         best = (score, sheet_i, free_i, pw, ph, rotated)
         if best is None:
-            unplaced.append(
-                {"w": panel["w"], "h": panel["h"], "grain": panel["grain"]}
-            )
+            unplaced.append(_piece_record(panel, None))
             continue
         _, sheet_i, free_i, pw, ph, rotated = best
         sheet = sheets[sheet_i]
@@ -271,18 +299,18 @@ def pack_job(job: dict) -> dict:
         kerfs, frees = _split(free, pw, ph, kerf)
         sheet["kerf"].extend(kerfs)
         sheet["free"].extend(frees)
-        sheet["placements"].append(
-            {
-                "x": free["x"],
-                "y": free["y"],
-                "w": pw,
-                "h": ph,
-                "rotated": rotated,
-                "grain": panel["grain"],
-                "source_w": panel["w"],
-                "source_h": panel["h"],
-            }
-        )
+        placed = {
+            "x": free["x"],
+            "y": free["y"],
+            "w": pw,
+            "h": ph,
+            "rotated": rotated,
+            "grain": panel["grain"],
+            "source_w": panel["w"],
+            "source_h": panel["h"],
+        }
+        placed.update(_piece_record(panel, placed=True))
+        sheet["placements"].append(placed)
 
     public_sheets = []
     for sheet in sheets:
@@ -298,6 +326,27 @@ def pack_job(job: dict) -> dict:
             }
         )
     return {"kerf_mm": kerf, "sheets": public_sheets, "unplaced": unplaced}
+
+
+def _piece_record(panel: dict, placed: bool | None) -> dict:
+    """Room identity carried onto a placement. Omitted when the piece has no face."""
+    if not panel.get("face"):
+        if placed:
+            return {}
+        return {"w": panel["w"], "h": panel["h"], "grain": panel["grain"]}
+    record = {
+        "id": panel["i"],
+        "face": panel["face"],
+        "name": panel["name"],
+        "u": panel["u"],
+        "v": panel["v"],
+    }
+    if placed:
+        return record
+    record["w"] = panel["w"]
+    record["h"] = panel["h"]
+    record["grain"] = panel["grain"]
+    return record
 
 
 def _commas(value: int) -> str:
@@ -349,7 +398,9 @@ def _equation(sheet: dict) -> str:
 def render_shop_text(plan: dict, job: dict, custom: bool = False) -> str:
     """Plain-text yard list. custom=True marks phone edits of the example."""
     if custom:
-        banner = "CUSTOM SIZES — edited on this phone, not the shipped example"
+        banner = "CUSTOM SIZES — edited on this phone, not a real job"
+    elif job.get("fictional"):
+        banner = "EXAMPLE / FICTIONAL — not a real job"
     elif job.get("example"):
         banner = "EXAMPLE — synthetic job, not a real bill of materials"
     else:
@@ -357,11 +408,17 @@ def render_shop_text(plan: dict, job: dict, custom: bool = False) -> str:
     lines = [
         "PLANKER PLASTERBOARD",
         banner,
-        f"Saw kerf: {job['kerf_mm']} mm (setting kerf_mm). 0 mm is score-and-snap.",
-        "Packing: guillotine best-area fit, shorter-leftover split. Not an exact optimum.",
-        "",
-        "PULL",
     ]
+    if job.get("story") and not custom:
+        lines.append(job["story"])
+    lines.extend(
+        [
+            f"Saw kerf: {job['kerf_mm']} mm (setting kerf_mm). 0 mm is score-and-snap.",
+            "Packing: guillotine best-area fit, shorter-leftover split. Not an exact optimum.",
+            "",
+            "PULL",
+        ]
+    )
     pulls = _groups_of_sheets(plan["sheets"], used=True)
     if pulls:
         total_n = 0
@@ -422,8 +479,20 @@ def render_html(job: dict) -> str:
     """One offline HTML file: the job is embedded and the cutter runs in the page."""
     sample = json.dumps(job, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
     script = (ROOT / "plaster_editor.js").read_text(encoding="utf-8").replace("__SAMPLE_JOB__", sample)
-    page = (ROOT / "plaster_page.html").read_text(encoding="utf-8").replace("__EDITOR_JS__", script)
-    if "__SAMPLE_JOB__" in page or "__EDITOR_JS__" in page:
+    story = (
+        job.get("story")
+        or "EXAMPLE / FICTIONAL. This room is made up. It is not a real job."
+    )
+    story_html = (
+        story.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    )
+    page = (
+        (ROOT / "plaster_page.html")
+        .read_text(encoding="utf-8")
+        .replace("__EDITOR_JS__", script)
+        .replace("__STORY__", story_html)
+    )
+    if "__SAMPLE_JOB__" in page or "__EDITOR_JS__" in page or "__STORY__" in page:
         raise RuntimeError("template placeholders left in the page")
     if not page.endswith("\n"):
         page += "\n"

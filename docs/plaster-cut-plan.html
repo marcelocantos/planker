@@ -146,6 +146,10 @@ p.note, .footnote { color: var(--muted); font-size: 16px; }
   border: 1px solid rgba(31, 26, 20, 0.35);
   vertical-align: -3px;
 }
+.swatch.mix {
+  width: 42px;
+  background: linear-gradient(90deg, #e0b15a, #7aa2c4 50%, #c47a8a);
+}
 .legend { display: flex; flex-wrap: wrap; gap: 8px 16px; list-style: none; padding: 0; margin: 8px 0 12px; }
 .legend li { display: flex; align-items: center; gap: 8px; font-size: 16px; min-height: 32px; }
 .key.off {
@@ -174,6 +178,53 @@ svg.board { display: block; width: 100%; height: auto; background: #f4e7d4; }
   font-size: 16px;
 }
 .chip.off { color: var(--muted); }
+.chip { cursor: pointer; }
+.chip.on { outline: 3px solid var(--stamp); outline-offset: 1px; }
+.chip.dim { opacity: 0.4; }
+svg.board .panel.on rect:first-of-type { stroke: var(--stamp); stroke-width: 16px; }
+svg.board .panel.dim { opacity: 0.35; }
+.room-view {
+  height: 420px;
+  perspective: 760px;
+  touch-action: none;
+  overflow: hidden;
+  background: linear-gradient(#efe6d6, #d9cbb8);
+  border: 1px solid var(--rule);
+  cursor: grab;
+}
+.room-stage {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  transform-style: preserve-3d;
+}
+.room-rig {
+  width: 0;
+  height: 0;
+  position: relative;
+  transform-style: preserve-3d;
+}
+.room-panel, .room-floor, .room-opening {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0 0;
+  backface-visibility: visible;
+  box-shadow: inset 0 0 0 14px rgba(31, 26, 20, 0.28);
+}
+.room-opening { box-shadow: inset 0 0 0 22px #6b5344; }
+.room-panel.on { box-shadow: inset 0 0 0 70px var(--stamp); }
+.room-panel.dim { opacity: 0.22; }
+.room-panel.loose { opacity: 0.5; }
+.room-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 8px;
+}
+.room-bar .note { margin: 0; flex: 1; }
+.room-bar button { min-height: 44px; flex: 0 0 auto; }
 .check { margin: 0; color: var(--muted); font-size: 15px; font-variant-numeric: tabular-nums; }
 .plain-wrap summary, #edit summary {
   min-height: 48px;
@@ -230,6 +281,15 @@ svg.board { display: block; width: 100%; height: auto; background: #f4e7d4; }
   color: var(--ink) !important;
   min-height: 44px;
   gap: 10px !important;
+}
+.piece-name {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
 }
 .lock input {
   width: 24px !important;
@@ -330,12 +390,13 @@ code { font: 0.92em ui-monospace, Menlo, Consolas, monospace; }
 <body>
 <main class="sheet">
 <header class="top">
-  <p class="kicker" id="kicker">Example · synthetic job</p>
+  <p class="kicker" id="kicker">Example · fictional</p>
   <h1>Plasterboard cut plan</h1>
-  <p class="lede">Not a real bill of materials. Counts and sizes are made up. Sheet sizes are typical Australian plasterboard, used only so the drawing has familiar proportions.</p>
-  <p class="banner" id="banner">EXAMPLE / SYNTHETIC — not a real job. The counts and sizes shipped with this page are made up.</p>
+  <p class="lede" id="story">Fictional spare room, 3.6 m by 3.0 m and 2.7 m high. A wardrobe bulk on the west wall, a bulkhead along the window wall, one door and one window. Invented sizes, not a client job. On hand in this fiction: 11 sheets of 1200×2700 mm and 8 of 1200×2400 mm.</p>
+  <p class="banner" id="banner">EXAMPLE / FICTIONAL — not a real job. This spare room is made up.</p>
   <nav class="jumps no-print">
     <a href="#pull">Sheets to pull</a>
+    <a href="#room">Room</a>
     <a href="#plan">Cut plan</a>
     <a href="#edit">Edit sizes</a>
   </nav>
@@ -351,6 +412,18 @@ code { font: 0.92em ui-monospace, Menlo, Consolas, monospace; }
 <p class="total" id="pull-total"></p>
 <div id="leave-block"></div>
 <div id="missing-block"></div>
+
+<section class="room-block no-print" id="room">
+  <h2>Room preview</h2>
+  <p class="note" id="room-note">Fictional room. Drag to turn, pinch to zoom. Tap a panel to mark it here and on the sheets.</p>
+  <div class="room-view" id="room-view">
+    <div class="room-stage"><div class="room-rig" id="room-rig"></div></div>
+  </div>
+  <div class="room-bar">
+    <button type="button" class="ghost" id="room-reset">Reset view</button>
+    <p class="note" id="piece-info">Tap a coloured panel. The same colour is on the sheet and in the room.</p>
+  </div>
+</section>
 
 <details id="edit" class="no-print">
   <summary>Edit stock and panels</summary>
@@ -392,8 +465,8 @@ code { font: 0.92em ui-monospace, Menlo, Consolas, monospace; }
 /* 2D plasterboard cutter for the shop sheet.
    Keep this in step with plaster.py. tests/js_plaster.js checks they match.
    The sample job is substituted when the page is generated. */
-var SAMPLE = {"example":true,"title":"EXAMPLE — synthetic plasterboard job","note":"Not a real bill of materials. Counts and sizes are made up. Sheet sizes are typical Australian plasterboard, used only so the drawing has familiar proportions.","kerf_mm":3,"available":[{"count":3,"w":1200,"h":2400},{"count":1,"w":1350,"h":3600},{"count":1,"w":1200,"h":2400},{"count":2,"w":1200,"h":3000}],"desired":[{"count":1,"w":2400,"h":500,"grain":false},{"count":2,"w":450,"h":2400,"grain":true},{"count":1,"w":1350,"h":3000,"grain":false},{"count":2,"w":1200,"h":900,"grain":false},{"count":1,"w":600,"h":1200,"grain":false},{"count":1,"w":800,"h":500,"grain":false},{"count":1,"w":1500,"h":2800,"grain":false}]};
-var STORAGE_KEY = "planker-plaster-edit-v1";
+var SAMPLE = {"example":true,"fictional":true,"title":"EXAMPLE / FICTIONAL — spare room","note":"EXAMPLE / FICTIONAL. Not a real bill of materials.","story":"Fictional spare room, 3.6 m by 3.0 m and 2.7 m high. A wardrobe bulk on the west wall, a bulkhead along the window wall, one door and one window. Invented sizes, not a client job. On hand in this fiction: 11 sheets of 1200×2700 mm and 8 of 1200×2400 mm.","kerf_mm":3,"available":[{"count":11,"w":1200,"h":2700},{"count":8,"w":1200,"h":2400}],"desired":[{"count":1,"w":1200,"h":2700,"grain":true,"face":"east","name":"East wall","u":0,"v":0},{"count":1,"w":1200,"h":2700,"grain":true,"face":"east","name":"East wall","u":1200,"v":0},{"count":1,"w":600,"h":2700,"grain":true,"face":"east","name":"East wall","u":2400,"v":0},{"count":1,"w":1200,"h":2700,"grain":true,"face":"south","name":"South wall, left","u":0,"v":0},{"count":1,"w":1200,"h":2700,"grain":true,"face":"south","name":"South wall, beside the door","u":1200,"v":0},{"count":1,"w":380,"h":2700,"grain":true,"face":"south","name":"South wall, right of the door","u":3220,"v":0},{"count":1,"w":820,"h":660,"grain":false,"face":"south","name":"Over the door","u":2400,"v":2040},{"count":1,"w":600,"h":2700,"grain":true,"face":"west","name":"West wall, south of the wardrobe","u":0,"v":0},{"count":1,"w":1200,"h":2700,"grain":true,"face":"west","name":"West wall, north of the wardrobe","u":1800,"v":0},{"count":1,"w":1200,"h":2700,"grain":true,"face":"robeFront","name":"Wardrobe front","u":0,"v":0},{"count":1,"w":600,"h":2700,"grain":true,"face":"robeSouth","name":"Wardrobe return, south","u":0,"v":0},{"count":1,"w":600,"h":2700,"grain":true,"face":"robeNorth","name":"Wardrobe return, north","u":0,"v":0},{"count":1,"w":1200,"h":2400,"grain":true,"face":"north","name":"North wall, left of the window","u":0,"v":0},{"count":1,"w":1200,"h":2400,"grain":true,"face":"north","name":"North wall, right of the window","u":2400,"v":0},{"count":1,"w":1200,"h":900,"grain":false,"face":"north","name":"Under the window","u":1200,"v":0},{"count":1,"w":1200,"h":400,"grain":false,"face":"north","name":"Over the window","u":1200,"v":2000},{"count":1,"w":1200,"h":600,"grain":false,"face":"ceiling","name":"Ceiling, south","u":0,"v":0},{"count":1,"w":1200,"h":600,"grain":false,"face":"ceiling","name":"Ceiling, south","u":1200,"v":0},{"count":1,"w":1200,"h":600,"grain":false,"face":"ceiling","name":"Ceiling, south","u":2400,"v":0},{"count":1,"w":1200,"h":1200,"grain":false,"face":"ceiling","name":"Ceiling, over the room","u":600,"v":600},{"count":1,"w":1200,"h":1200,"grain":false,"face":"ceiling","name":"Ceiling, over the room","u":1800,"v":600},{"count":1,"w":600,"h":1200,"grain":false,"face":"ceiling","name":"Ceiling, by the east wall","u":3000,"v":600},{"count":1,"w":1200,"h":700,"grain":false,"face":"ceiling","name":"Ceiling, by the bulkhead","u":0,"v":1800},{"count":1,"w":1200,"h":700,"grain":false,"face":"ceiling","name":"Ceiling, by the bulkhead","u":1200,"v":1800},{"count":1,"w":1200,"h":700,"grain":false,"face":"ceiling","name":"Ceiling, by the bulkhead","u":2400,"v":1800},{"count":1,"w":1200,"h":500,"grain":false,"face":"soffit","name":"Bulkhead soffit","u":0,"v":0},{"count":1,"w":1200,"h":500,"grain":false,"face":"soffit","name":"Bulkhead soffit","u":1200,"v":0},{"count":1,"w":1200,"h":500,"grain":false,"face":"soffit","name":"Bulkhead soffit","u":2400,"v":0},{"count":1,"w":1200,"h":300,"grain":false,"face":"bulkhead","name":"Bulkhead face","u":0,"v":0},{"count":1,"w":1200,"h":300,"grain":false,"face":"bulkhead","name":"Bulkhead face","u":1200,"v":0},{"count":1,"w":1200,"h":300,"grain":false,"face":"bulkhead","name":"Bulkhead face","u":2400,"v":0},{"count":1,"w":90,"h":2040,"grain":false,"face":"doorWestJamb","name":"Door jamb","u":0,"v":0},{"count":1,"w":90,"h":2040,"grain":false,"face":"doorEastJamb","name":"Door jamb","u":0,"v":0},{"count":1,"w":820,"h":90,"grain":false,"face":"doorHead","name":"Door head reveal","u":0,"v":0},{"count":1,"w":100,"h":1100,"grain":false,"face":"winLeft","name":"Window jamb","u":0,"v":0},{"count":1,"w":100,"h":1100,"grain":false,"face":"winRight","name":"Window jamb","u":0,"v":0},{"count":1,"w":1200,"h":100,"grain":false,"face":"winSill","name":"Window sill","u":0,"v":0},{"count":1,"w":1200,"h":100,"grain":false,"face":"winHead","name":"Window head reveal","u":0,"v":0}],"room":{"length":3600,"width":3000,"height":2700,"openings":[{"name":"Door","face":"south","u":2400,"v":0,"w":820,"h":2040},{"name":"Window","face":"north","u":1200,"v":900,"w":1200,"h":1100}]}};
+var STORAGE_KEY = "planker-plaster-edit-v2";
 var LIMIT_SHEETS = 80;
 var LIMIT_PANELS = 200;
 var LIMIT_MM = 20000;
@@ -480,6 +553,30 @@ function better(score, best) {
   return false;
 }
 
+function pieceColor(id) {
+  var hue = Math.round((id * 137.508) % 360);
+  return "hsl(" + hue + ",48%,62%)";
+}
+
+function pieceRecord(panel, placed) {
+  if (!panel.face) {
+    if (placed) return {};
+    return {w: panel.w, h: panel.h, grain: panel.grain};
+  }
+  var record = {
+    id: panel.i,
+    face: panel.face,
+    name: panel.name,
+    u: panel.u,
+    v: panel.v
+  };
+  if (placed) return record;
+  record.w = panel.w;
+  record.h = panel.h;
+  record.grain = panel.grain;
+  return record;
+}
+
 function packJob(job) {
   var kerf = job.kerf_mm;
   if (typeof kerf !== "number" || kerf < 0 || kerf > LIMIT_MM || kerf !== Math.floor(kerf)) {
@@ -521,7 +618,14 @@ function packJob(job) {
   var pieceI = 0;
   job.desired.forEach(function (panel) {
     for (var n = 0; n < panel.count; n++) {
-      panels.push({w: panel.w, h: panel.h, grain: !!panel.grain, i: pieceI});
+      var item = {w: panel.w, h: panel.h, grain: !!panel.grain, i: pieceI};
+      if (panel.face) {
+        item.face = panel.face;
+        item.name = panel.name || panel.face;
+        item.u = panel.u;
+        item.v = panel.v;
+      }
+      panels.push(item);
       pieceI += 1;
     }
   });
@@ -571,7 +675,7 @@ function packJob(job) {
       }
     }
     if (!best) {
-      unplaced.push({w: panel.w, h: panel.h, grain: panel.grain});
+      unplaced.push(pieceRecord(panel, false));
       return;
     }
     var chosen = sheets[best.sheetI];
@@ -579,7 +683,7 @@ function packJob(job) {
     var parts = splitFree(placedFree, best.w, best.h, kerf);
     chosen.kerfRects = chosen.kerfRects.concat(parts.kerfs);
     chosen.free = chosen.free.concat(parts.frees);
-    chosen.placements.push({
+    var placed = {
       x: placedFree.x,
       y: placedFree.y,
       w: best.w,
@@ -588,7 +692,10 @@ function packJob(job) {
       grain: panel.grain,
       source_w: panel.w,
       source_h: panel.h
-    });
+    };
+    var extra = pieceRecord(panel, true);
+    Object.keys(extra).forEach(function (key) { placed[key] = extra[key]; });
+    chosen.placements.push(placed);
   });
 
   return {
@@ -670,16 +777,20 @@ function equation(sheet) {
 function shopText(plan, job, custom) {
   if (plan.error) return plan.error + "\n";
   var banner = "Plasterboard job";
-  if (custom) banner = "CUSTOM SIZES — edited on this phone, not the shipped example";
+  if (custom) banner = "CUSTOM SIZES — edited on this phone, not a real job";
+  else if (job.fictional) banner = "EXAMPLE / FICTIONAL — not a real job";
   else if (job.example) banner = "EXAMPLE — synthetic job, not a real bill of materials";
   var lines = [
     "PLANKER PLASTERBOARD",
-    banner,
+    banner
+  ];
+  if (job.story && !custom) lines.push(job.story);
+  lines.push(
     "Saw kerf: " + job.kerf_mm + " mm (setting kerf_mm). 0 mm is score-and-snap.",
     "Packing: guillotine best-area fit, shorter-leftover split. Not an exact optimum.",
     "",
     "PULL"
-  ];
+  );
   var pulls = sheetGroups(plan.sheets, true);
   if (pulls.length) {
     var totalN = 0;
@@ -764,23 +875,37 @@ function sizeKey(panel) {
 function colourMap(plan) {
   var map = {};
   var n = 0;
-  function take(key) {
+  function take(panel) {
+    if (typeof panel.id === "number") return;
+    var key = sizeKey(panel);
     if (map[key]) return;
     map[key] = PANEL_COLOURS[n % PANEL_COLOURS.length];
     n += 1;
   }
   plan.sheets.forEach(function (sheet) {
-    sheet.placements.forEach(function (panel) { take(sizeKey(panel)); });
+    sheet.placements.forEach(take);
   });
-  plan.unplaced.forEach(function (panel) { take(sizeKey(panel)); });
+  plan.unplaced.forEach(take);
   return map;
+}
+
+function fillFor(panel, colours) {
+  if (typeof panel.id === "number") return pieceColor(panel.id);
+  return colours[sizeKey(panel)] || "#d7c4a8";
+}
+
+function pieceAttr(panel) {
+  if (typeof panel.id !== "number") return "";
+  return ' data-piece="' + panel.id + '"';
 }
 
 function canonical(job) {
   return JSON.stringify({
     kerf_mm: job.kerf_mm,
     available: job.available.map(function (row) { return [row.count, row.w, row.h]; }),
-    desired: job.desired.map(function (row) { return [row.count, row.w, row.h, row.grain ? 1 : 0]; })
+    desired: job.desired.map(function (row) {
+      return [row.count, row.w, row.h, row.grain ? 1 : 0, row.face || "", row.u || 0, row.v || 0, row.name || ""];
+    })
   });
 }
 
@@ -823,14 +948,22 @@ function boardSvg(sheet, colours) {
   body += "</pattern></defs>";
   body += '<rect x="0" y="0" width="' + sheet.w + '" height="' + sheet.h + '" fill="url(#waste-' + id + ')"/>';
   sheet.placements.forEach(function (panel) {
-    var fill = colours[sizeKey(panel)] || "#d7c4a8";
+    var fill = fillFor(panel, colours);
+    var title = (panel.name ? panel.name + ", " : "") + panel.w + " × " + panel.h;
+    body += '<g class="panel"' + pieceAttr(panel) + '>';
     body += '<rect x="' + panel.x + '" y="' + panel.y + '" width="' + panel.w + '" height="' + panel.h +
       '" fill="' + fill + '" stroke="#1f1a14" stroke-width="2" vector-effect="non-scaling-stroke"><title>' +
-      panel.w + " × " + panel.h + "</title></rect>";
+      esc(title) + "</title></rect>";
     if (panel.grain) {
       body += '<rect x="' + panel.x + '" y="' + panel.y + '" width="' + panel.w + '" height="' + panel.h +
         '" fill="url(#grain-' + id + ')"/>';
     }
+    var lines = [panel.w + " × " + panel.h];
+    if (panel.rotated) lines.push("turned");
+    else if (panel.grain) lines.push("locked");
+    if (panel.name && panel.w >= 700 && panel.h >= 500) lines.unshift(panel.name);
+    body += fittedText(panel.x, panel.y, panel.w, panel.h, lines, "#1f1a14");
+    body += "</g>";
   });
   sheet.kerf.forEach(function (band) {
     body += '<rect x="' + band.x + '" y="' + band.y + '" width="' + band.w + '" height="' + band.h +
@@ -853,12 +986,6 @@ function boardSvg(sheet, colours) {
     body += '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 +
       '" stroke="#1a120c" stroke-width="4" vector-effect="non-scaling-stroke"/>';
   });
-  sheet.placements.forEach(function (panel) {
-    var lines = [panel.w + " × " + panel.h];
-    if (panel.rotated) lines.push("turned");
-    else if (panel.grain) lines.push("locked");
-    body += fittedText(panel.x, panel.y, panel.w, panel.h, lines, "#1f1a14");
-  });
   sheet.waste.forEach(function (offcut) {
     body += fittedText(offcut.x, offcut.y, offcut.w, offcut.h, [offcut.w + " × " + offcut.h, "offcut"], "#6d6256");
   });
@@ -871,8 +998,9 @@ function boardSvg(sheet, colours) {
 function chipsHtml(sheet, colours) {
   var html = sheet.placements.map(function (panel, index) {
     var note = panel.rotated ? " turned" : (panel.grain ? " face locked" : "");
-    return "<span class='chip'><i style='background:" + (colours[sizeKey(panel)] || "#d7c4a8") + "'></i>" +
-      (index + 1) + " · " + panel.w + " × " + panel.h + note + "</span>";
+    var title = panel.name ? panel.name + " · " : "";
+    return "<span class='chip'" + pieceAttr(panel) + "><i style='background:" + fillFor(panel, colours) + "'></i>" +
+      (index + 1) + " · " + esc(title) + panel.w + " × " + panel.h + note + "</span>";
   }).join("");
   sheet.waste.forEach(function (offcut) {
     html += "<span class='chip off'>offcut " + offcut.w + " × " + offcut.h + "</span>";
@@ -899,28 +1027,9 @@ function maxSheetWidth(plan) {
   return maxW || 1;
 }
 
-function legendHtml(plan, colours) {
-  var seen = {};
-  var items = "";
-  function add(key, label) {
-    if (seen[key]) return;
-    seen[key] = true;
-    items += "<li><i class='swatch' style='background:" + colours[key] + "'></i>" + esc(label) + "</li>";
-  }
-  plan.sheets.forEach(function (sheet) {
-    sheet.placements.forEach(function (panel) {
-      var name = mmSize(panel.source_w, panel.source_h);
-      if (panel.grain) name += ", face locked";
-      add(sizeKey(panel), name);
-    });
-  });
-  plan.unplaced.forEach(function (panel) {
-    var name = mmSize(panel.w, panel.h);
-    if (panel.grain) name += ", face locked";
-    add(sizeKey(panel), name);
-  });
-  items += "<li><i class='key off'></i> Offcut</li><li><i class='key kerf'></i> Kerf " + plan.kerf_mm + " mm</li>";
-  return items;
+function legendHtml(plan) {
+  return "<li><i class='swatch mix'></i>Each panel keeps one colour on the sheet and in the room</li>" +
+    "<li><i class='key off'></i>Offcut</li><li><i class='key kerf'></i>Kerf " + plan.kerf_mm + " mm</li>";
 }
 
 function unplacedHtml(plan, colours, maxW) {
@@ -941,7 +1050,8 @@ function unplacedHtml(plan, colours, maxW) {
       h: panel.h,
       placements: [{
         x: 0, y: 0, w: panel.w, h: panel.h, rotated: false, grain: panel.grain,
-        source_w: panel.w, source_h: panel.h
+        source_w: panel.w, source_h: panel.h,
+        id: panel.id, face: panel.face, name: panel.name, u: panel.u, v: panel.v
       }],
       kerf: [],
       waste: []
@@ -951,6 +1061,231 @@ function unplacedHtml(plan, colours, maxW) {
       "<p class='note'>" + esc(tried) + "</p></article>";
   });
   return html + "</div>";
+}
+
+var selectedId = null;
+var currentPlan = null;
+var roomViewState = {rx: -18, ry: 32, z: 0.15, px: 0, py: 0};
+var roomPointers = {};
+var roomPinched = false;
+var EYE = {x: 1900, y: 1500, z: 1400};
+
+var FACE_GEOM = {
+  south: {type: "wall", along: "x", x0: 0, z: 0, y0: 0, nudge: [0, 0, 18]},
+  north: {type: "wall", along: "x", x0: 0, z: 3000, y0: 0, nudge: [0, 0, -18]},
+  east: {type: "wall", along: "z", x: 3600, z0: 0, y0: 0, nudge: [-18, 0, 0]},
+  west: {type: "wall", along: "z", x: 0, z0: 0, y0: 0, nudge: [18, 0, 0]},
+  robeFront: {type: "wall", along: "z", x: 600, z0: 600, y0: 0, nudge: [18, 0, 0]},
+  robeSouth: {type: "wall", along: "x", x0: 0, z: 600, y0: 0, nudge: [0, 0, -18]},
+  robeNorth: {type: "wall", along: "x", x0: 0, z: 1800, y0: 0, nudge: [0, 0, 18]},
+  ceiling: {type: "flat", y: 2700, x0: 0, z0: 0, nudge: [0, -18, 0]},
+  soffit: {type: "flat", y: 2400, x0: 0, z0: 2500, nudge: [0, -18, 0]},
+  bulkhead: {type: "wall", along: "x", x0: 0, z: 2500, y0: 2400, nudge: [0, 0, -18]},
+  doorWestJamb: {type: "wall", along: "z", x: 2400, z0: 0, y0: 0, nudge: [8, 0, 0]},
+  doorEastJamb: {type: "wall", along: "z", x: 3220, z0: 0, y0: 0, nudge: [-8, 0, 0]},
+  doorHead: {type: "flat", y: 2040, x0: 2400, z0: 0, nudge: [0, -8, 0]},
+  winLeft: {type: "wall", along: "z", x: 1200, z0: 2900, y0: 900, nudge: [8, 0, 0]},
+  winRight: {type: "wall", along: "z", x: 2400, z0: 2900, y0: 900, nudge: [-8, 0, 0]},
+  winSill: {type: "flat", y: 900, x0: 1200, z0: 2900, nudge: [0, 8, 0]},
+  winHead: {type: "flat", y: 2000, x0: 1200, z0: 2900, nudge: [0, -8, 0]}
+};
+
+function cross3(a, b) {
+  return [
+    a[1] * b[2] - a[2] * b[1],
+    a[2] * b[0] - a[0] * b[2],
+    a[0] * b[1] - a[1] * b[0]
+  ];
+}
+
+function toCss(x, y, z) {
+  return [x - EYE.x, EYE.y - y, EYE.z - z];
+}
+
+function panelMatrix(origin, axisU, axisV) {
+  var o = toCss(origin[0], origin[1], origin[2]);
+  var uEnd = toCss(origin[0] + axisU[0], origin[1] + axisU[1], origin[2] + axisU[2]);
+  var vEnd = toCss(origin[0] + axisV[0], origin[1] + axisV[1], origin[2] + axisV[2]);
+  var u = [uEnd[0] - o[0], uEnd[1] - o[1], uEnd[2] - o[2]];
+  var v = [vEnd[0] - o[0], vEnd[1] - o[1], vEnd[2] - o[2]];
+  var n = cross3(u, v);
+  return "matrix3d(" + [
+    u[0], u[1], u[2], 0,
+    v[0], v[1], v[2], 0,
+    n[0], n[1], n[2], 0,
+    o[0], o[1], o[2], 1
+  ].join(",") + ")";
+}
+
+function piecePose(face, u, v, w, h) {
+  var geom = FACE_GEOM[face];
+  if (!geom) return null;
+  var nudge = geom.nudge || [0, 0, 0];
+  var origin;
+  var axisU;
+  var axisV;
+  if (geom.type === "wall") {
+    var top = geom.y0 + v + h;
+    if (geom.along === "x") {
+      origin = [geom.x0 + u, top, geom.z];
+      axisU = [1, 0, 0];
+    } else {
+      origin = [geom.x, top, geom.z0 + u];
+      axisU = [0, 0, 1];
+    }
+    axisV = [0, -1, 0];
+  } else {
+    origin = [geom.x0 + u, geom.y, geom.z0 + v];
+    axisU = [1, 0, 0];
+    axisV = [0, 0, 1];
+  }
+  origin = [origin[0] + nudge[0], origin[1] + nudge[1], origin[2] + nudge[2]];
+  return {origin: origin, axisU: axisU, axisV: axisV};
+}
+
+function addRoomFace(parent, spec) {
+  var pose = piecePose(spec.face, spec.u || 0, spec.v || 0, spec.w, spec.h);
+  if (!pose) return;
+  var el = document.createElement("div");
+  el.className = spec.className;
+  el.style.width = spec.w + "px";
+  el.style.height = spec.h + "px";
+  if (spec.fill) el.style.background = spec.fill;
+  if (typeof spec.id === "number") el.setAttribute("data-piece", String(spec.id));
+  if (spec.title) el.title = spec.title;
+  el.style.transform = panelMatrix(pose.origin, pose.axisU, pose.axisV);
+  parent.appendChild(el);
+}
+
+function collectRoomPieces(plan) {
+  var pieces = [];
+  plan.sheets.forEach(function (sheet) {
+    sheet.placements.forEach(function (panel) {
+      if (!panel.face || typeof panel.id !== "number") return;
+      pieces.push({
+        id: panel.id,
+        face: panel.face,
+        name: panel.name,
+        u: panel.u,
+        v: panel.v,
+        w: panel.source_w,
+        h: panel.source_h,
+        placed: true
+      });
+    });
+  });
+  plan.unplaced.forEach(function (panel) {
+    if (!panel.face || typeof panel.id !== "number") return;
+    pieces.push({
+      id: panel.id,
+      face: panel.face,
+      name: panel.name,
+      u: panel.u,
+      v: panel.v,
+      w: panel.w,
+      h: panel.h,
+      placed: false
+    });
+  });
+  return pieces;
+}
+
+function applyRoomView() {
+  var rig = document.getElementById("room-rig");
+  if (!rig) return;
+  var view = roomViewState;
+  rig.style.transform = "translate3d(" + view.px.toFixed(1) + "px," + view.py.toFixed(1) + "px,0) scale(" +
+    view.z.toFixed(4) + ") rotateX(" + view.rx.toFixed(2) + "deg) rotateY(" + view.ry.toFixed(2) + "deg)";
+}
+
+function renderRoom(plan) {
+  var rig = document.getElementById("room-rig");
+  if (!rig) return;
+  rig.innerHTML = "";
+  addRoomFace(rig, {className: "room-floor", face: "ceiling", u: 0, v: 0, w: 3600, h: 3000, fill: "#c4b8a4"});
+  var floor = rig.lastChild;
+  if (floor) {
+    var pose = {
+      origin: [0, -8, 0],
+      axisU: [1, 0, 0],
+      axisV: [0, 0, 1]
+    };
+    floor.style.transform = panelMatrix(pose.origin, pose.axisU, pose.axisV);
+  }
+  var room = (typeof SAMPLE !== "undefined" && SAMPLE && SAMPLE.room) ? SAMPLE.room : null;
+  if (room && room.openings) {
+    room.openings.forEach(function (opening) {
+      var zFace = opening.face === "north" ? "north" : "south";
+      var pose = piecePose(zFace, opening.u, opening.v, opening.w, opening.h);
+      if (!pose) return;
+      var origin = pose.origin.slice();
+      origin[2] = opening.face === "north" ? 3048 : -48;
+      var hole = document.createElement("div");
+      hole.className = "room-opening";
+      hole.style.width = opening.w + "px";
+      hole.style.height = opening.h + "px";
+      hole.style.background = "#241c16";
+      hole.style.transform = panelMatrix(origin, pose.axisU, pose.axisV);
+      rig.appendChild(hole);
+    });
+  }
+  collectRoomPieces(plan).forEach(function (piece) {
+    addRoomFace(rig, {
+      className: piece.placed ? "room-panel" : "room-panel loose",
+      face: piece.face,
+      id: piece.id,
+      u: piece.u,
+      v: piece.v,
+      w: piece.w,
+      h: piece.h,
+      fill: pieceColor(piece.id),
+      title: piece.name
+    });
+  });
+  applyRoomView();
+}
+
+function findPiece(plan, id) {
+  var found = null;
+  function scan(panel) {
+    if (typeof panel.id === "number" && String(panel.id) === String(id)) found = panel;
+  }
+  if (!plan) return null;
+  plan.sheets.forEach(function (sheet) { sheet.placements.forEach(scan); });
+  plan.unplaced.forEach(scan);
+  return found;
+}
+
+function applySelection(plan) {
+  var nodes = document.querySelectorAll("[data-piece]");
+  nodes.forEach(function (el) {
+    var on = selectedId !== null && el.getAttribute("data-piece") === String(selectedId);
+    el.classList.toggle("on", on);
+    el.classList.toggle("dim", selectedId !== null && !on);
+  });
+  var info = document.getElementById("piece-info");
+  if (!info) return;
+  if (selectedId === null) {
+    info.textContent = "Tap a coloured panel. The same colour is on the sheet and in the room.";
+    return;
+  }
+  var piece = findPiece(plan, selectedId);
+  if (!piece) {
+    selectedId = null;
+    info.textContent = "Tap a coloured panel. The same colour is on the sheet and in the room.";
+    nodes.forEach(function (el) { el.classList.remove("on"); el.classList.remove("dim"); });
+    return;
+  }
+  var w = piece.source_w || piece.w;
+  var h = piece.source_h || piece.h;
+  var missing = plan.unplaced.some(function (panel) { return String(panel.id) === String(selectedId); });
+  info.textContent = (piece.name || "Panel") + " · " + w + " × " + h + " mm" + (missing ? " · not on a sheet" : "");
+}
+
+function selectPiece(id, plan) {
+  if (id === null || id === undefined || id === "") return;
+  selectedId = String(selectedId) === String(id) ? null : id;
+  applySelection(plan);
 }
 
 function paint(job) {
@@ -965,6 +1300,9 @@ function paint(job) {
       var node = document.getElementById(id);
       if (node) node.innerHTML = "";
     });
+    var rig = document.getElementById("room-rig");
+    if (rig) rig.innerHTML = "";
+    currentPlan = null;
     var pre = document.getElementById("lumber-text");
     if (pre) pre.textContent = plan.error;
     return;
@@ -981,13 +1319,24 @@ function paint(job) {
   }
   var kicker = document.getElementById("kicker");
   var banner = document.getElementById("banner");
+  var fictional = mode === "example" && SAMPLE && SAMPLE.fictional;
+  var story = document.getElementById("story");
+  if (story && SAMPLE && SAMPLE.story) story.textContent = SAMPLE.story;
   if (kicker) {
-    kicker.textContent = mode === "custom" ? "Edited on this phone" : (mode === "example" ? "Example · synthetic job" : "Plasterboard");
+    kicker.textContent = mode === "custom"
+      ? "Edited on this phone"
+      : (fictional ? "Example · fictional" : (mode === "example" ? "Example · synthetic job" : "Plasterboard"));
   }
   if (banner) {
-    banner.textContent = mode === "custom"
-      ? "Edited on this phone. These sizes are not the shipped example, and they are not loaded from a job file. Restore example job puts the synthetic example back."
-      : "EXAMPLE / SYNTHETIC — not a real job. The counts and sizes shipped with this page are made up.";
+    if (mode === "custom") {
+      banner.textContent = "Edited on this phone. Still not a real job. Restore example job reloads the fictional spare room.";
+    } else if (fictional) {
+      banner.textContent = "EXAMPLE / FICTIONAL — not a real job. This spare room is made up.";
+    } else if (mode === "example") {
+      banner.textContent = "EXAMPLE / SYNTHETIC — not a real job. The counts and sizes shipped with this page are made up.";
+    } else {
+      banner.textContent = "Plasterboard cut plan.";
+    }
   }
 
   var pulls = sheetGroups(plan.sheets, true);
@@ -1057,10 +1406,10 @@ function paint(job) {
 
   var colours = colourMap(plan);
   var legend = document.getElementById("cut-legend");
-  if (legend) legend.innerHTML = legendHtml(plan, colours);
+  if (legend) legend.innerHTML = legendHtml(plan);
   var cutNote = document.getElementById("cut-note");
   if (cutNote) {
-    cutNote.textContent = "Each sheet is to scale with the others. Hatched areas are offcuts. The dark strip is the " +
+    cutNote.textContent = "Each sheet is to scale with the others. A panel's colour is the same on the sheet and in the room. Tap one to mark it in both. Hatched areas are offcuts. The dark strip is the " +
       job.kerf_mm + " mm saw kerf, drawn with a hairline so a thin blade still shows. A panel marked turned was rotated 90°. Locked panels keep the width and height you entered. Sheet numbers follow the stock list after counts are expanded. A number that is missing here was left on the rack.";
   }
 
@@ -1088,6 +1437,9 @@ function paint(job) {
   html += unplacedHtml(plan, colours, maxW);
   var cutBody = document.getElementById("cut-body");
   if (cutBody) cutBody.innerHTML = html;
+  currentPlan = plan;
+  renderRoom(plan);
+  applySelection(plan);
 
   var pre = document.getElementById("lumber-text");
   if (pre) {
@@ -1108,14 +1460,21 @@ function rowFields(kind, row) {
   var width = row ? row.w : "";
   var height = row ? row.h : "";
   var lock = "";
+  var meta = "";
+  var nameLine = "";
   if (kind === "panel") {
     lock = '<label class="lock"><input type="checkbox"' + (row && row.grain ? " checked" : "") +
       "> Face direction locked</label>";
+    if (row && row.face) {
+      meta = ' data-face="' + esc(row.face) + '" data-name="' + esc(row.name || row.face) +
+        '" data-u="' + row.u + '" data-v="' + row.v + '"';
+    }
+    if (row && row.name) nameLine = '<p class="piece-name">' + esc(row.name) + "</p>";
   }
-  return '<div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="' +
+  return '<div class="edit-row"' + meta + '><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="' +
     count + '"></label><label>Width mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="' +
     width + '"></label><label>Height mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="' +
-    height + '"></label><button type="button" class="remove ghost">Remove</button>' + lock + "</div>";
+    height + '"></label><button type="button" class="remove ghost">Remove</button>' + nameLine + lock + "</div>";
 }
 
 function fillForm(job) {
@@ -1138,6 +1497,13 @@ function readRows(container, withGrain) {
     if (!(count > 0 && width > 0 && height > 0)) return;
     var item = {count: count, w: width, h: height};
     if (withGrain) item.grain = !!(inputs[3] && inputs[3].checked);
+    var face = row.getAttribute("data-face");
+    if (face) {
+      item.face = face;
+      item.name = row.getAttribute("data-name") || face;
+      item.u = parseInt(row.getAttribute("data-u"), 10) || 0;
+      item.v = parseInt(row.getAttribute("data-v"), 10) || 0;
+    }
     rows.push(item);
   });
   return rows;
@@ -1200,9 +1566,92 @@ function boot() {
   });
   document.getElementById("restore-sample").addEventListener("click", function () {
     try { localStorage.removeItem(STORAGE_KEY); } catch (err) { /* private mode */ }
+    selectedId = null;
     fillForm(SAMPLE);
     paint(SAMPLE);
   });
+  var cutBody = document.getElementById("cut-body");
+  if (cutBody) {
+    cutBody.addEventListener("click", function (event) {
+      var el = event.target.closest("[data-piece]");
+      if (!el) return;
+      selectPiece(el.getAttribute("data-piece"), currentPlan);
+    });
+  }
+  var roomView = document.getElementById("room-view");
+  var resetBtn = document.getElementById("room-reset");
+  if (resetBtn) {
+    resetBtn.addEventListener("click", function () {
+      roomViewState = {rx: -18, ry: 32, z: 0.15, px: 0, py: 0};
+      applyRoomView();
+    });
+  }
+  if (roomView) {
+    roomView.addEventListener("pointerdown", function (event) {
+      try { roomView.setPointerCapture(event.pointerId); } catch (err) { /* already gone */ }
+      roomPointers[event.pointerId] = {x: event.clientX, y: event.clientY, sx: event.clientX, sy: event.clientY};
+    });
+    roomView.addEventListener("pointermove", function (event) {
+      var point = roomPointers[event.pointerId];
+      if (!point) return;
+      var ids = Object.keys(roomPointers);
+      var prevX = point.x;
+      var prevY = point.y;
+      point.x = event.clientX;
+      point.y = event.clientY;
+      if (ids.length >= 2) {
+        roomPinched = true;
+        var a = roomPointers[ids[0]];
+        var b = roomPointers[ids[1]];
+        var dist = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+        var mx = (a.x + b.x) / 2;
+        var my = (a.y + b.y) / 2;
+        if (!roomView._pinch) {
+          roomView._pinch = {dist: dist, mx: mx, my: my, z: roomViewState.z, px: roomViewState.px, py: roomViewState.py};
+        }
+        var base = roomView._pinch;
+        var nextZ = base.z * (dist / base.dist);
+        if (nextZ < 0.04) nextZ = 0.04;
+        if (nextZ > 0.4) nextZ = 0.4;
+        roomViewState.z = nextZ;
+        roomViewState.px = base.px + (mx - base.mx);
+        roomViewState.py = base.py + (my - base.my);
+        applyRoomView();
+        return;
+      }
+      var dx = event.clientX - prevX;
+      var dy = event.clientY - prevY;
+      roomViewState.ry += dx * 0.35;
+      roomViewState.rx += dy * 0.28;
+      if (roomViewState.rx > 80) roomViewState.rx = 80;
+      if (roomViewState.rx < -80) roomViewState.rx = -80;
+      applyRoomView();
+    });
+    function endRoomPointer(event) {
+      var point = roomPointers[event.pointerId];
+      delete roomPointers[event.pointerId];
+      if (Object.keys(roomPointers).length < 2) roomView._pinch = null;
+      if (!point) return;
+      var moved = Math.hypot(event.clientX - point.sx, event.clientY - point.sy);
+      if (moved < 6 && !roomPinched && Object.keys(roomPointers).length === 0) {
+        var el = document.elementFromPoint(event.clientX, event.clientY);
+        var piece = el && el.closest ? el.closest("[data-piece]") : null;
+        if (piece && roomView.contains(piece)) selectPiece(piece.getAttribute("data-piece"), currentPlan);
+      }
+      if (Object.keys(roomPointers).length === 0) roomPinched = false;
+    }
+    roomView.addEventListener("pointerup", endRoomPointer);
+    roomView.addEventListener("pointercancel", endRoomPointer);
+    roomView.addEventListener("wheel", function (event) {
+      event.preventDefault();
+      var factor = event.deltaY > 0 ? 0.92 : 1.08;
+      var nextZ = roomViewState.z * factor;
+      if (nextZ < 0.04) nextZ = 0.04;
+      if (nextZ > 0.4) nextZ = 0.4;
+      roomViewState.z = nextZ;
+      applyRoomView();
+    }, {passive: false});
+  }
   var saved = null;
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null"); } catch (err) { saved = null; }
   if (validJob(saved)) {

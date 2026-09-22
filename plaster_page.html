@@ -146,6 +146,10 @@ p.note, .footnote { color: var(--muted); font-size: 16px; }
   border: 1px solid rgba(31, 26, 20, 0.35);
   vertical-align: -3px;
 }
+.swatch.mix {
+  width: 42px;
+  background: linear-gradient(90deg, #e0b15a, #7aa2c4 50%, #c47a8a);
+}
 .legend { display: flex; flex-wrap: wrap; gap: 8px 16px; list-style: none; padding: 0; margin: 8px 0 12px; }
 .legend li { display: flex; align-items: center; gap: 8px; font-size: 16px; min-height: 32px; }
 .key.off {
@@ -174,6 +178,53 @@ svg.board { display: block; width: 100%; height: auto; background: #f4e7d4; }
   font-size: 16px;
 }
 .chip.off { color: var(--muted); }
+.chip { cursor: pointer; }
+.chip.on { outline: 3px solid var(--stamp); outline-offset: 1px; }
+.chip.dim { opacity: 0.4; }
+svg.board .panel.on rect:first-of-type { stroke: var(--stamp); stroke-width: 16px; }
+svg.board .panel.dim { opacity: 0.35; }
+.room-view {
+  height: 420px;
+  perspective: 760px;
+  touch-action: none;
+  overflow: hidden;
+  background: linear-gradient(#efe6d6, #d9cbb8);
+  border: 1px solid var(--rule);
+  cursor: grab;
+}
+.room-stage {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  transform-style: preserve-3d;
+}
+.room-rig {
+  width: 0;
+  height: 0;
+  position: relative;
+  transform-style: preserve-3d;
+}
+.room-panel, .room-floor, .room-opening {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0 0;
+  backface-visibility: visible;
+  box-shadow: inset 0 0 0 14px rgba(31, 26, 20, 0.28);
+}
+.room-opening { box-shadow: inset 0 0 0 22px #6b5344; }
+.room-panel.on { box-shadow: inset 0 0 0 70px var(--stamp); }
+.room-panel.dim { opacity: 0.22; }
+.room-panel.loose { opacity: 0.5; }
+.room-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 8px;
+}
+.room-bar .note { margin: 0; flex: 1; }
+.room-bar button { min-height: 44px; flex: 0 0 auto; }
 .check { margin: 0; color: var(--muted); font-size: 15px; font-variant-numeric: tabular-nums; }
 .plain-wrap summary, #edit summary {
   min-height: 48px;
@@ -230,6 +281,15 @@ svg.board { display: block; width: 100%; height: auto; background: #f4e7d4; }
   color: var(--ink) !important;
   min-height: 44px;
   gap: 10px !important;
+}
+.piece-name {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
 }
 .lock input {
   width: 24px !important;
@@ -330,12 +390,13 @@ code { font: 0.92em ui-monospace, Menlo, Consolas, monospace; }
 <body>
 <main class="sheet">
 <header class="top">
-  <p class="kicker" id="kicker">Example · synthetic job</p>
+  <p class="kicker" id="kicker">Example · fictional</p>
   <h1>Plasterboard cut plan</h1>
-  <p class="lede">Not a real bill of materials. Counts and sizes are made up. Sheet sizes are typical Australian plasterboard, used only so the drawing has familiar proportions.</p>
-  <p class="banner" id="banner">EXAMPLE / SYNTHETIC — not a real job. The counts and sizes shipped with this page are made up.</p>
+  <p class="lede" id="story">__STORY__</p>
+  <p class="banner" id="banner">EXAMPLE / FICTIONAL — not a real job. This spare room is made up.</p>
   <nav class="jumps no-print">
     <a href="#pull">Sheets to pull</a>
+    <a href="#room">Room</a>
     <a href="#plan">Cut plan</a>
     <a href="#edit">Edit sizes</a>
   </nav>
@@ -351,6 +412,18 @@ code { font: 0.92em ui-monospace, Menlo, Consolas, monospace; }
 <p class="total" id="pull-total"></p>
 <div id="leave-block"></div>
 <div id="missing-block"></div>
+
+<section class="room-block no-print" id="room">
+  <h2>Room preview</h2>
+  <p class="note" id="room-note">Fictional room. Drag to turn, pinch to zoom. Tap a panel to mark it here and on the sheets.</p>
+  <div class="room-view" id="room-view">
+    <div class="room-stage"><div class="room-rig" id="room-rig"></div></div>
+  </div>
+  <div class="room-bar">
+    <button type="button" class="ghost" id="room-reset">Reset view</button>
+    <p class="note" id="piece-info">Tap a coloured panel. The same colour is on the sheet and in the room.</p>
+  </div>
+</section>
 
 <details id="edit" class="no-print">
   <summary>Edit stock and panels</summary>

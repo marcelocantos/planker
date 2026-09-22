@@ -1,6 +1,6 @@
 """2D plasterboard planner tests.
 
-example-plaster.json is a labelled synthetic job, not stock to buy.
+example-plaster.json is a labelled fictional spare room, not a client job.
 The timber CLI is only smoked here so this page cannot silently replace it.
 """
 
@@ -204,12 +204,22 @@ class ExampleJobTests(unittest.TestCase):
     def test_example_is_labelled_and_is_not_the_timber_job(self):
         raw = (ROOT / "example-plaster.json").read_text(encoding="utf-8")
         self.assertTrue(self.job["example"])
-        self.assertIn("synthetic", self.job["title"])
+        self.assertTrue(self.job["fictional"])
+        self.assertIn("FICTIONAL", self.job["title"])
+        self.assertIn("fictional", self.job["story"].lower())
+        self.assertIn("not a client job", self.job["story"])
         self.assertIn("Not a real bill of materials", self.job["note"])
-        self.assertIn("made up", self.job["note"])
         self.assertNotIn("5400", raw)
         self.assertNotIn("input.json", raw)
         self.assertEqual(self.job["kerf_mm"], 3)
+        self.assertEqual([(row["w"], row["h"], row["count"]) for row in self.job["available"]], [(1200, 2700, 11), (1200, 2400, 8)])
+        self.assertEqual(len(self.job["desired"]), 38)
+        for row in self.job["desired"]:
+            self.assertEqual(row["count"], 1)
+            self.assertTrue(row["face"])
+            self.assertTrue(row["name"])
+            self.assertGreaterEqual(row["u"], 0)
+            self.assertGreaterEqual(row["v"], 0)
 
     def test_every_sheet_is_a_partition_and_pieces_are_counted_once(self):
         desired = []
@@ -223,33 +233,83 @@ class ExampleJobTests(unittest.TestCase):
                 placed.append((placement["source_w"], placement["source_h"], placement["grain"]))
         missing = [(panel["w"], panel["h"], panel["grain"]) for panel in self.plan["unplaced"]]
         self.assertEqual(sorted(placed + missing), sorted(desired))
-        self.assertEqual(self.plan["unplaced"], [{"w": 1500, "h": 2800, "grain": False}])
+        self.assertEqual(self.plan["unplaced"], [])
 
-    def test_example_pull_leave_and_the_turned_panel(self):
+    def _face_rows(self):
+        grouped = {}
+        for row in self.job["desired"]:
+            grouped.setdefault(row["face"], []).append(row)
+        return grouped
+
+    def test_room_faces_cover_their_area_and_leave_the_openings(self):
+        grouped = self._face_rows()
+        expected = {
+            "east": 3000 * 2700,
+            "south": 3600 * 2700 - 820 * 2040,
+            "west": 1800 * 2700,
+            "robeFront": 1200 * 2700,
+            "robeSouth": 600 * 2700,
+            "robeNorth": 600 * 2700,
+            "north": 3600 * 2400 - 1200 * 1100,
+            "ceiling": 3600 * 2500 - 600 * 1200,
+            "soffit": 3600 * 500,
+            "bulkhead": 3600 * 300,
+            "doorWestJamb": 90 * 2040,
+            "doorEastJamb": 90 * 2040,
+            "doorHead": 820 * 90,
+            "winLeft": 100 * 1100,
+            "winRight": 100 * 1100,
+            "winSill": 1200 * 100,
+            "winHead": 1200 * 100,
+        }
+        self.assertEqual(set(grouped), set(expected))
+
+        def covers(rows, hole):
+            hu, hv, hw, hh = hole
+            for row in rows:
+                if row["u"] < hu + hw and hu < row["u"] + row["w"] and row["v"] < hv + hh and hv < row["v"] + row["h"]:
+                    return True
+            return False
+
+        for face, rows in grouped.items():
+            area = 0
+            for index, row in enumerate(rows):
+                area += row["w"] * row["h"]
+                for other in rows[index + 1 :]:
+                    self.assertFalse(
+                        row["u"] < other["u"] + other["w"]
+                        and other["u"] < row["u"] + row["w"]
+                        and row["v"] < other["v"] + other["h"]
+                        and other["v"] < row["v"] + row["h"],
+                        f"{face} pieces overlap",
+                    )
+            self.assertEqual(area, expected[face], face)
+        self.assertFalse(covers(grouped["south"], (2400, 0, 820, 2040)))
+        self.assertFalse(covers(grouped["north"], (1200, 900, 1200, 1100)))
+
+    def test_example_pull_leave_and_a_turned_panel(self):
         self.assertEqual(
             plaster._groups_of_sheets(self.plan["sheets"], used=True),
-            [(1200, 2400, 3), (1350, 3600, 1)],
+            [(1200, 2700, 10), (1200, 2400, 7)],
         )
         self.assertEqual(
             plaster._groups_of_sheets(self.plan["sheets"], used=False),
-            [(1200, 2400, 1), (1200, 3000, 2)],
+            [(1200, 2700, 1), (1200, 2400, 1)],
         )
-        first = self.plan["sheets"][0]["placements"][0]
-        self.assertTrue(first["rotated"])
-        self.assertEqual((first["w"], first["h"]), (500, 2400))
-        self.assertEqual((first["source_w"], first["source_h"]), (2400, 500))
-        locked = self.plan["sheets"][0]["placements"][1]
-        self.assertTrue(locked["grain"])
-        self.assertFalse(locked["rotated"])
+        placed = [panel for sheet in self.plan["sheets"] for panel in sheet["placements"]]
+        self.assertTrue(any(panel["rotated"] for panel in placed))
+        self.assertTrue(any(panel["grain"] and not panel["rotated"] for panel in placed))
+        ids = [panel["id"] for panel in placed]
+        self.assertEqual(sorted(ids), list(range(len(ids))))
         text = plaster.render_shop_text(self.plan, self.job)
-        self.assertIn("EXAMPLE — synthetic job, not a real bill of materials", text)
-        self.assertIn("3 x 1200 x 2400 mm (2.880 m2 each)", text)
-        self.assertIn("1 x 1350 x 3600 mm (4.860 m2 each)", text)
-        self.assertIn("Total: 4 sheets, 13.500 m2", text)
-        self.assertIn("1 x 1500 x 2800 mm (turns allowed)", text)
-        self.assertIn("This list does not add a sheet to buy.", text)
-        self.assertIn("turned (entered 2400 x 500)", text)
+        self.assertIn("EXAMPLE / FICTIONAL — not a real job", text)
+        self.assertIn("not a client job", text)
+        self.assertIn("10 x 1200 x 2700 mm (3.240 m2 each)", text)
+        self.assertIn("7 x 1200 x 2400 mm (2.880 m2 each)", text)
+        self.assertIn("Total: 17 sheets, 52.560 m2", text)
+        self.assertIn("DOES NOT FIT\nnone", text)
         self.assertIn("face locked", text)
+        self.assertIn("turned (entered", text)
 
     def test_browser_cutter_matches_python_on_the_example_and_the_fixtures(self):
         cases = [
@@ -267,8 +327,9 @@ class ExampleJobTests(unittest.TestCase):
             self.assertEqual(got["plan"]["unplaced"], plan["unplaced"])
             self.assertEqual(got["text"], plaster.render_shop_text(plan, job))
         custom = _js(self.job, custom=True)
-        self.assertIn("CUSTOM SIZES", custom["text"])
-        self.assertNotIn("EXAMPLE — synthetic", custom["text"])
+        self.assertIn("CUSTOM SIZES — edited on this phone, not a real job", custom["text"])
+        self.assertNotIn("EXAMPLE / FICTIONAL", custom["text"])
+        self.assertNotIn(self.job["story"], custom["text"])
 
 
 class PageTests(unittest.TestCase):
@@ -277,13 +338,17 @@ class PageTests(unittest.TestCase):
         html = plaster.render_html(job)
         checked = ROOT / "docs" / "plaster-cut-plan.html"
         self.assertEqual(checked.read_text(encoding="utf-8"), html)
-        self.assertIn("EXAMPLE / SYNTHETIC", html)
+        self.assertIn("EXAMPLE / FICTIONAL", html)
+        self.assertIn("wardrobe", html)
+        self.assertIn("bulkhead", html)
+        self.assertIn("Room preview", html)
+        self.assertIn('id="room-view"', html)
         self.assertIn("guillotine best-area fit", html)
         self.assertIn("kerf_mm", html)
-        self.assertIn("1500", html)
         self.assertIn("Face direction locked", html)
         self.assertNotIn("__SAMPLE_JOB__", html)
         self.assertNotIn("__EDITOR_JS__", html)
+        self.assertNotIn("__STORY__", html)
         self.assertIn("function packJob", html)
 
     def test_cli_writes_the_list_and_rejects_a_bad_job(self):
@@ -295,7 +360,8 @@ class PageTests(unittest.TestCase):
             check=True,
         )
         self.assertTrue(proc.stdout.startswith("PLANKER PLASTERBOARD\n"))
-        self.assertIn("DOES NOT FIT\n1 x 1500 x 2800 mm", proc.stdout)
+        self.assertIn("EXAMPLE / FICTIONAL — not a real job", proc.stdout)
+        self.assertIn("DOES NOT FIT\nnone", proc.stdout)
         self.assertEqual(proc.stderr, "")
         bad = subprocess.run(
             [sys.executable, "plaster.py", "--kerf", "-1", "example-plaster.json"],
