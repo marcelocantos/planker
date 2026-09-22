@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f3ecdf">
+<meta name="color-scheme" content="light">
+<title>Plasterboard cut plan</title>
+<style>
+:root {
+  --paper: #f3ecdf;
+  --sheet: #fffaf3;
+  --ink: #1f1a14;
+  --muted: #6d6256;
+  --line: #eadfce;
+  --rule: #d9cbb6;
+  --stamp: #8c2f1b;
+  --ok: #1f7a4d;
+  --shadow: 0 16px 40px rgba(60, 40, 20, 0.08);
+  --dock: 76px;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; color-scheme: light; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  touch-action: manipulation;
+}
+.sheet {
+  max-width: 720px;
+  margin: 0 auto;
+  background: var(--sheet);
+  padding: 16px 16px calc(var(--dock) + env(safe-area-inset-bottom));
+}
+header.top { border-top: 8px solid var(--stamp); padding-top: 14px; }
+.kicker {
+  margin: 0;
+  color: var(--stamp);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+h1 {
+  margin: 4px 0 0;
+  font-family: Palatino, "Palatino Linotype", "Iowan Old Style", Georgia, serif;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+.lede { margin: 8px 0 0; color: var(--muted); font-size: 17px; }
+.banner {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  background: #f8efe4;
+  border: 2px solid var(--stamp);
+  font-weight: 700;
+}
+nav.jumps { display: flex; gap: 4px 18px; flex-wrap: wrap; margin: 12px 0 0; }
+nav.jumps a {
+  color: var(--stamp);
+  font-size: 17px;
+  font-weight: 700;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+h2 {
+  margin: 28px 0 8px;
+  font-family: Palatino, "Palatino Linotype", Georgia, serif;
+  font-size: 28px;
+  line-height: 1.15;
+  break-after: avoid;
+}
+h3 { margin: 22px 0 6px; font-size: 18px; break-after: avoid; }
+p.note, .footnote { color: var(--muted); font-size: 16px; }
+.error {
+  margin: 12px 0;
+  padding: 10px 12px;
+  background: #fff;
+  border: 2px solid var(--stamp);
+  color: var(--stamp);
+  font-weight: 700;
+}
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 16px 0 8px;
+}
+.stats div {
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 10px 12px 12px;
+  min-height: 72px;
+}
+.stats dt {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.stats dd { margin: 2px 0 0; font-size: 28px; font-variant-numeric: tabular-nums; font-weight: 700; }
+.stats dd small { font-size: 15px; font-weight: 600; color: var(--muted); margin-left: 4px; }
+.stats .bad dd { color: var(--stamp); }
+.stats .ok dd { color: var(--ok); }
+.pull, .leave { list-style: none; margin: 0; padding: 0; }
+.pull { border-left: 4px solid var(--stamp); padding-left: 12px; }
+.leave { border-left: 4px solid #c4b39a; padding-left: 12px; }
+.total { margin: 8px 0 0; font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; }
+.pull li, .leave li { border-top: 1px solid var(--line); }
+.pull label, .leave li {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  align-items: center;
+  column-gap: 8px;
+  min-height: 84px;
+  padding: 12px 0;
+}
+.leave li { grid-template-columns: 1fr; min-height: 76px; }
+.pull input {
+  grid-row: 1 / span 3;
+  width: 28px;
+  height: 28px;
+  justify-self: center;
+  accent-color: var(--stamp);
+}
+.count {
+  font-size: 40px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.mm { font-size: 22px; font-variant-numeric: tabular-nums; font-weight: 700; }
+.m { color: var(--muted); font-size: 16px; font-variant-numeric: tabular-nums; }
+.swatch, .chip i, .key {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 1px solid rgba(31, 26, 20, 0.35);
+  vertical-align: -3px;
+}
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; list-style: none; padding: 0; margin: 8px 0 12px; }
+.legend li { display: flex; align-items: center; gap: 8px; font-size: 16px; min-height: 32px; }
+.key.off {
+  background: repeating-linear-gradient(45deg, #f4e7d4, #f4e7d4 3px, #c4a484 3px, #c4a484 5px);
+}
+.key.kerf { background: #1f1a14; }
+.fig { max-width: 100%; }
+.board-card, article.board { padding: 8px 0 16px; border-top: 1px solid var(--line); break-inside: avoid; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+.idx { color: var(--muted); font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.stock { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.cuts-n { color: var(--muted); font-size: 16px; }
+svg.board { display: block; width: 100%; height: auto; background: #f4e7d4; }
+.chips { margin: 8px 0 0; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  margin: 0 8px 8px 0;
+  padding: 6px 10px 6px 8px;
+  background: #fff;
+  border: 1px solid var(--line);
+  font-variant-numeric: tabular-nums;
+  font-size: 16px;
+}
+.chip.off { color: var(--muted); }
+.check { margin: 0; color: var(--muted); font-size: 15px; font-variant-numeric: tabular-nums; }
+.plain-wrap summary, #edit summary {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 700;
+}
+#edit summary {
+  font-family: Palatino, "Palatino Linotype", Georgia, serif;
+  font-size: 28px;
+  line-height: 1.15;
+}
+.edit-row {
+  display: grid;
+  grid-template-columns: 3.6rem minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: end;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+.edit-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  min-width: 0;
+}
+.edit-row input[type="checkbox"] { text-transform: none; }
+.edit-row input {
+  font: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  width: 100%;
+  background: #fff;
+  color: var(--ink);
+}
+.lock {
+  grid-column: 1 / -1;
+  flex-direction: row !important;
+  align-items: center;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  color: var(--ink) !important;
+  min-height: 44px;
+  gap: 10px !important;
+}
+.lock input {
+  width: 24px !important;
+  height: 24px;
+  min-height: 24px !important;
+  padding: 0 !important;
+  accent-color: var(--stamp);
+}
+.edit-row .remove { min-width: 48px; padding: 10px 8px; }
+.add-row, #restore-sample { width: 100%; margin: 8px 0 16px; }
+.kerf-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  min-height: 48px;
+  margin: 8px 0 4px;
+}
+.kerf-field input {
+  font: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  width: 4.5em;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: #fff;
+}
+pre.plain {
+  background: #fff;
+  border: 1px solid var(--line);
+  padding: 12px 14px;
+  overflow: auto;
+  white-space: pre-wrap;
+  font: 15px/1.45 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+.length-group { margin-top: 8px; }
+.length-group h3 { margin-bottom: 0; }
+button {
+  background: var(--ink);
+  color: var(--sheet);
+  border: 0;
+  border-radius: 8px;
+  min-height: 48px;
+  padding: 10px 12px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+button.ghost { background: #fff; color: var(--ink); border: 1px solid var(--rule); }
+:focus-visible { outline: 3px solid var(--stamp); outline-offset: 2px; }
+.dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  background: rgba(255, 250, 243, 0.97);
+  border-top: 1px solid var(--rule);
+}
+.dock button { flex: 1; font-size: 17px; }
+code { font: 0.92em ui-monospace, Menlo, Consolas, monospace; }
+@media (min-width: 680px) {
+  .sheet {
+    margin: 20px auto 32px;
+    padding: 28px 28px calc(var(--dock) + 24px);
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow);
+  }
+  h1 { font-size: 40px; }
+  .stats { grid-template-columns: repeat(4, 1fr); }
+  .dock {
+    left: 50%;
+    right: auto;
+    width: min(720px, calc(100% - 32px));
+    transform: translateX(-50%);
+    border: 1px solid var(--rule);
+    border-bottom: 0;
+    border-radius: 12px 12px 0 0;
+  }
+}
+@page { size: A4; margin: 12mm; }
+@media print {
+  body { background: #fff; }
+  .sheet { margin: 0; max-width: none; border: 0; box-shadow: none; padding: 0; }
+  .no-print, .dock { display: none !important; }
+  svg.board { break-inside: avoid; }
+  a { color: inherit; text-decoration: none; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+<main class="sheet">
+<header class="top">
+  <p class="kicker" id="kicker">Example · synthetic job</p>
+  <h1>Plasterboard cut plan</h1>
+  <p class="lede">Not a real bill of materials. Counts and sizes are made up. Sheet sizes are typical Australian plasterboard, used only so the drawing has familiar proportions.</p>
+  <p class="banner" id="banner">EXAMPLE / SYNTHETIC — not a real job. The counts and sizes shipped with this page are made up.</p>
+  <nav class="jumps no-print">
+    <a href="#pull">Sheets to pull</a>
+    <a href="#plan">Cut plan</a>
+    <a href="#edit">Edit sizes</a>
+  </nav>
+</header>
+<noscript><p class="banner">This page lays the sheets out with JavaScript. It stays on the phone — nothing is uploaded.</p></noscript>
+<p class="error" id="error" hidden></p>
+<dl class="stats" id="stats"></dl>
+<p class="note" id="summary-note"></p>
+
+<h2 id="pull">Sheets to pull</h2>
+<p class="note">Tick a row as you take that size off the rack. Counts come from the stock list on this page.</p>
+<ul class="pull" id="pull-list"></ul>
+<p class="total" id="pull-total"></p>
+<div id="leave-block"></div>
+<div id="missing-block"></div>
+
+<details id="edit" class="no-print">
+  <summary>Edit stock and panels</summary>
+  <p class="note" id="edit-note"></p>
+  <h3>Stock sheets</h3>
+  <div id="stock-rows"></div>
+  <button type="button" class="add-row" id="add-stock">Add a stock sheet</button>
+  <h3>Panels to cut</h3>
+  <p class="note">Width is across the sheet and height runs down the drawing, in millimetres. Face direction locked keeps that orientation. Otherwise the planner may turn the panel 90°.</p>
+  <div id="panel-rows"></div>
+  <button type="button" class="add-row" id="add-panel">Add a panel</button>
+  <label class="kerf-field">Saw kerf
+    <input id="kerf-input" inputmode="numeric" enterkeyhint="done" min="0" step="1" value="3">
+    mm
+  </label>
+  <p class="note">Named setting <code>kerf_mm</code>. Default 3 mm, about a circular-saw or panel-saw blade. Use 0 for score-and-snap, which does not remove a strip.</p>
+  <button type="button" class="ghost" id="restore-sample">Restore example job</button>
+</details>
+
+<h2 id="plan">Cut plan</h2>
+<p class="note" id="cut-note"></p>
+<ul class="legend" id="cut-legend"></ul>
+<div id="cut-body"></div>
+
+<h2>Plain text</h2>
+<details class="plain-wrap" open>
+  <summary>List to share</summary>
+  <pre class="plain" id="lumber-text"></pre>
+</details>
+<p class="footnote">Packing is guillotine best-area fit with a shorter-leftover split. Panels go largest longer-side first, into the free rectangle whose leftover area is smallest. Each placement is one through-cut of that rectangle: if the leftover is narrower than it is short, the cut runs the full height; otherwise it runs the full width. The panel may be turned 90° unless face direction is locked. Stock sheets are not turned. This is not an exact optimum. Saw kerf (<code>kerf_mm</code>) defaults to 3 mm and is taken out of each through-cut. A leftover thinner than the kerf is not used. Set kerf to 0 for score-and-snap.</p>
+<p class="footnote">Open this file in Safari or Chrome. Nothing to install, and it works offline. On iPhone or iPad: AirDrop the file, or save it in Files, then open it in Safari. The timber cutter (<code>planker.py</code>) is a separate 1D tool.</p>
+</main>
+<nav class="dock no-print" aria-label="Share this list">
+  <button type="button" id="share-btn">Share</button>
+  <button type="button" id="copy-btn" class="ghost">Copy</button>
+  <button type="button" id="print-btn" class="ghost">Print</button>
+</nav>
+<script>
+/* 2D plasterboard cutter for the shop sheet.
+   Keep this in step with plaster.py. tests/js_plaster.js checks they match.
+   The sample job is substituted when the page is generated. */
+var SAMPLE = {"example":true,"title":"EXAMPLE — synthetic plasterboard job","note":"Not a real bill of materials. Counts and sizes are made up. Sheet sizes are typical Australian plasterboard, used only so the drawing has familiar proportions.","kerf_mm":3,"available":[{"count":3,"w":1200,"h":2400},{"count":1,"w":1350,"h":3600},{"count":1,"w":1200,"h":2400},{"count":2,"w":1200,"h":3000}],"desired":[{"count":1,"w":2400,"h":500,"grain":false},{"count":2,"w":450,"h":2400,"grain":true},{"count":1,"w":1350,"h":3000,"grain":false},{"count":2,"w":1200,"h":900,"grain":false},{"count":1,"w":600,"h":1200,"grain":false},{"count":1,"w":800,"h":500,"grain":false},{"count":1,"w":1500,"h":2800,"grain":false}]};
+var STORAGE_KEY = "planker-plaster-edit-v1";
+var LIMIT_SHEETS = 80;
+var LIMIT_PANELS = 200;
+var LIMIT_MM = 20000;
+var ERR_SHEETS = "Too many sheets to lay out here (limit 80).";
+var ERR_PANELS = "Too many panels to lay out here (limit 200).";
+var ERR_MM = "Width and height must be from 1 to 20000 mm.";
+var ERR_KERF = "Saw kerf must be a whole number of millimetres, 0 or more.";
+var PANEL_COLOURS = [
+  "#e0b15a", "#f0d2b0", "#b9cbb0", "#e7c2a8", "#cbbba6",
+  "#a9c5c4", "#efd28a", "#d9c4b4", "#c9b4c4", "#c4c8b0"
+];
+
+function rect(x, y, w, h) {
+  return {x: x, y: y, w: w, h: h};
+}
+
+function sortRects(rects) {
+  return rects.slice().sort(function (a, b) {
+    if (a.y !== b.y) return a.y - b.y;
+    if (a.x !== b.x) return a.x - b.x;
+    if (a.w !== b.w) return a.w - b.w;
+    return a.h - b.h;
+  });
+}
+
+function fits(free, pw, ph, kerf) {
+  if (pw > free.w || ph > free.h) return false;
+  var leftoverW = free.w - pw;
+  var leftoverH = free.h - ph;
+  if (leftoverW > 0 && leftoverW < kerf) return false;
+  if (leftoverH > 0 && leftoverH < kerf) return false;
+  return true;
+}
+
+function splitFree(free, pw, ph, kerf) {
+  var leftoverW = free.w - pw;
+  var leftoverH = free.h - ph;
+  var kerfs = [];
+  var frees = [];
+  function band(length) {
+    if (length <= 0) return [0, 0];
+    return [kerf, length - kerf];
+  }
+  var kerfW, restW, kerfH, restH, parts;
+  if (leftoverW < leftoverH) {
+    parts = band(leftoverW);
+    kerfW = parts[0];
+    restW = parts[1];
+    parts = band(leftoverH);
+    kerfH = parts[0];
+    restH = parts[1];
+    if (kerfW) kerfs.push(rect(free.x + pw, free.y, kerfW, free.h));
+    if (restW) frees.push(rect(free.x + pw + kerfW, free.y, restW, free.h));
+    if (kerfH) kerfs.push(rect(free.x, free.y + ph, pw, kerfH));
+    if (restH) frees.push(rect(free.x, free.y + ph + kerfH, pw, restH));
+  } else {
+    parts = band(leftoverW);
+    kerfW = parts[0];
+    restW = parts[1];
+    parts = band(leftoverH);
+    kerfH = parts[0];
+    restH = parts[1];
+    if (kerfH) kerfs.push(rect(free.x, free.y + ph, free.w, kerfH));
+    if (restH) frees.push(rect(free.x, free.y + ph + kerfH, free.w, restH));
+    if (kerfW) kerfs.push(rect(free.x + pw, free.y, kerfW, ph));
+    if (restW) frees.push(rect(free.x + pw + kerfW, free.y, restW, ph));
+  }
+  return {kerfs: kerfs, frees: frees};
+}
+
+function orientations(panel) {
+  var options = [{rotated: false, w: panel.w, h: panel.h}];
+  if (!panel.grain && panel.w !== panel.h) {
+    options.push({rotated: true, w: panel.h, h: panel.w});
+  }
+  return options;
+}
+
+function better(score, best) {
+  for (var i = 0; i < score.length; i++) {
+    if (score[i] < best[i]) return true;
+    if (score[i] > best[i]) return false;
+  }
+  return false;
+}
+
+function packJob(job) {
+  var kerf = job.kerf_mm;
+  if (typeof kerf !== "number" || kerf < 0 || kerf > LIMIT_MM || kerf !== Math.floor(kerf)) {
+    return {error: ERR_KERF};
+  }
+  var sheetN = 0;
+  var panelN = 0;
+  var row;
+  for (var s = 0; s < job.available.length; s++) {
+    row = job.available[s];
+    if (row.w < 1 || row.h < 1 || row.w > LIMIT_MM || row.h > LIMIT_MM) return {error: ERR_MM};
+    sheetN += row.count;
+  }
+  for (var d = 0; d < job.desired.length; d++) {
+    row = job.desired[d];
+    if (row.w < 1 || row.h < 1 || row.w > LIMIT_MM || row.h > LIMIT_MM) return {error: ERR_MM};
+    panelN += row.count;
+  }
+  if (sheetN > LIMIT_SHEETS) return {error: ERR_SHEETS};
+  if (panelN > LIMIT_PANELS) return {error: ERR_PANELS};
+
+  var sheets = [];
+  var index = 1;
+  job.available.forEach(function (stock) {
+    for (var n = 0; n < stock.count; n++) {
+      sheets.push({
+        index: index,
+        w: stock.w,
+        h: stock.h,
+        placements: [],
+        kerfRects: [],
+        free: [rect(0, 0, stock.w, stock.h)]
+      });
+      index += 1;
+    }
+  });
+
+  var panels = [];
+  var pieceI = 0;
+  job.desired.forEach(function (panel) {
+    for (var n = 0; n < panel.count; n++) {
+      panels.push({w: panel.w, h: panel.h, grain: !!panel.grain, i: pieceI});
+      pieceI += 1;
+    }
+  });
+  panels.sort(function (a, b) {
+    var aMax = Math.max(a.w, a.h);
+    var bMax = Math.max(b.w, b.h);
+    if (aMax !== bMax) return bMax - aMax;
+    var aArea = a.w * a.h;
+    var bArea = b.w * b.h;
+    if (aArea !== bArea) return bArea - aArea;
+    var aMin = Math.min(a.w, a.h);
+    var bMin = Math.min(b.w, b.h);
+    if (aMin !== bMin) return bMin - aMin;
+    return a.i - b.i;
+  });
+
+  var unplaced = [];
+  panels.forEach(function (panel) {
+    var best = null;
+    for (var sheetI = 0; sheetI < sheets.length; sheetI++) {
+      var sheet = sheets[sheetI];
+      for (var freeI = 0; freeI < sheet.free.length; freeI++) {
+        var free = sheet.free[freeI];
+        var options = orientations(panel);
+        for (var o = 0; o < options.length; o++) {
+          var option = options[o];
+          if (!fits(free, option.w, option.h, kerf)) continue;
+          var score = [
+            free.w * free.h - option.w * option.h,
+            sheet.placements.length ? 0 : 1,
+            option.rotated ? 1 : 0,
+            sheetI,
+            free.y,
+            free.x
+          ];
+          if (!best || better(score, best.score)) {
+            best = {
+              score: score,
+              sheetI: sheetI,
+              freeI: freeI,
+              w: option.w,
+              h: option.h,
+              rotated: option.rotated
+            };
+          }
+        }
+      }
+    }
+    if (!best) {
+      unplaced.push({w: panel.w, h: panel.h, grain: panel.grain});
+      return;
+    }
+    var chosen = sheets[best.sheetI];
+    var placedFree = chosen.free.splice(best.freeI, 1)[0];
+    var parts = splitFree(placedFree, best.w, best.h, kerf);
+    chosen.kerfRects = chosen.kerfRects.concat(parts.kerfs);
+    chosen.free = chosen.free.concat(parts.frees);
+    chosen.placements.push({
+      x: placedFree.x,
+      y: placedFree.y,
+      w: best.w,
+      h: best.h,
+      rotated: best.rotated,
+      grain: panel.grain,
+      source_w: panel.w,
+      source_h: panel.h
+    });
+  });
+
+  return {
+    error: "",
+    kerf_mm: kerf,
+    sheets: sheets.map(function (sheet) {
+      return {
+        index: sheet.index,
+        w: sheet.w,
+        h: sheet.h,
+        used: sheet.placements.length > 0,
+        placements: sheet.placements,
+        kerf: sortRects(sheet.kerfRects),
+        waste: sortRects(sheet.free)
+      };
+    }),
+    unplaced: unplaced
+  };
+}
+
+function commas(value) {
+  var sign = value < 0 ? "-" : "";
+  var text = String(Math.abs(Math.trunc(value)));
+  var out = "";
+  for (var i = 0; i < text.length; i++) {
+    if (i > 0 && (text.length - i) % 3 === 0) out += ",";
+    out += text.charAt(i);
+  }
+  return sign + out;
+}
+
+function areaM2(mm2) {
+  var whole = Math.floor(mm2 / 1000000);
+  var milli = Math.floor((mm2 % 1000000) / 1000);
+  var frac = String(milli);
+  while (frac.length < 3) frac = "0" + frac;
+  return whole + "." + frac + " m2";
+}
+
+function sheetGroups(sheets, used) {
+  var order = [];
+  var counts = {};
+  sheets.forEach(function (sheet) {
+    if (sheet.used !== used) return;
+    var key = sheet.w + "x" + sheet.h;
+    if (!counts[key]) {
+      counts[key] = {w: sheet.w, h: sheet.h, n: 0};
+      order.push(key);
+    }
+    counts[key].n += 1;
+  });
+  return order.map(function (key) { return counts[key]; });
+}
+
+function panelGroups(panels) {
+  var order = [];
+  var counts = {};
+  panels.forEach(function (panel) {
+    var key = panel.w + "x" + panel.h + ":" + (panel.grain ? 1 : 0);
+    if (!counts[key]) {
+      counts[key] = {w: panel.w, h: panel.h, grain: panel.grain, n: 0};
+      order.push(key);
+    }
+    counts[key].n += 1;
+  });
+  return order.map(function (key) { return counts[key]; });
+}
+
+function equation(sheet) {
+  var panel = 0;
+  var kerf = 0;
+  var waste = 0;
+  sheet.placements.forEach(function (item) { panel += item.w * item.h; });
+  sheet.kerf.forEach(function (item) { kerf += item.w * item.h; });
+  sheet.waste.forEach(function (item) { waste += item.w * item.h; });
+  return commas(panel) + " + kerf " + commas(kerf) + " + offcut " + commas(waste) + " = " + commas(sheet.w * sheet.h) + " mm2";
+}
+
+function shopText(plan, job, custom) {
+  if (plan.error) return plan.error + "\n";
+  var banner = "Plasterboard job";
+  if (custom) banner = "CUSTOM SIZES — edited on this phone, not the shipped example";
+  else if (job.example) banner = "EXAMPLE — synthetic job, not a real bill of materials";
+  var lines = [
+    "PLANKER PLASTERBOARD",
+    banner,
+    "Saw kerf: " + job.kerf_mm + " mm (setting kerf_mm). 0 mm is score-and-snap.",
+    "Packing: guillotine best-area fit, shorter-leftover split. Not an exact optimum.",
+    "",
+    "PULL"
+  ];
+  var pulls = sheetGroups(plan.sheets, true);
+  if (pulls.length) {
+    var totalN = 0;
+    var totalArea = 0;
+    pulls.forEach(function (group) {
+      lines.push(group.n + " x " + group.w + " x " + group.h + " mm (" + areaM2(group.w * group.h) + " each)");
+      totalN += group.n;
+      totalArea += group.n * group.w * group.h;
+    });
+    lines.push("Total: " + totalN + " sheets, " + areaM2(totalArea));
+  } else {
+    lines.push("none");
+  }
+  lines.push("", "LEAVE");
+  var leaves = sheetGroups(plan.sheets, false);
+  if (leaves.length) {
+    leaves.forEach(function (group) {
+      lines.push(group.n + " x " + group.w + " x " + group.h + " mm (" + areaM2(group.w * group.h) + " each)");
+    });
+  } else {
+    lines.push("none");
+  }
+  lines.push("", "DOES NOT FIT");
+  if (plan.unplaced.length) {
+    panelGroups(plan.unplaced).forEach(function (group) {
+      var lock = group.grain ? "face locked" : "turns allowed";
+      lines.push(group.n + " x " + group.w + " x " + group.h + " mm (" + lock + ")");
+    });
+    lines.push("These are panel sizes that did not fit. This list does not add a sheet to buy.");
+  } else {
+    lines.push("none");
+  }
+  lines.push("", "CUTS");
+  var used = plan.sheets.filter(function (sheet) { return sheet.used; });
+  if (!used.length) lines.push("none");
+  used.forEach(function (sheet) {
+    lines.push("Sheet " + sheet.index + " — " + sheet.w + " x " + sheet.h + " mm");
+    sheet.placements.forEach(function (placement, index) {
+      var extra = "";
+      if (placement.rotated) extra = " turned (entered " + placement.source_w + " x " + placement.source_h + ")";
+      else if (placement.grain) extra = " face locked";
+      lines.push("  " + (index + 1) + ". " + placement.w + " x " + placement.h + " at " + placement.x + "," + placement.y + extra);
+    });
+    sheet.waste.forEach(function (offcut) {
+      lines.push("  offcut " + offcut.w + " x " + offcut.h + " at " + offcut.x + "," + offcut.y);
+    });
+    if (job.kerf_mm && sheet.kerf.length) {
+      var kerfArea = 0;
+      sheet.kerf.forEach(function (item) { kerfArea += item.w * item.h; });
+      lines.push("  kerf " + job.kerf_mm + " mm, " + areaM2(kerfArea));
+    }
+    lines.push("  " + equation(sheet));
+  });
+  lines.push("");
+  return lines.join("\n");
+}
+
+function esc(value) {
+  return String(value).replace(/[&<>"']/g, function (ch) {
+    return {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[ch];
+  });
+}
+
+function mmSize(w, h) {
+  return commas(w) + " × " + commas(h) + " mm";
+}
+
+function areaLabel(mm2) {
+  return areaM2(mm2).replace(" m2", " m²");
+}
+
+function sizeKey(panel) {
+  var w = panel.source_w !== undefined ? panel.source_w : panel.w;
+  var h = panel.source_h !== undefined ? panel.source_h : panel.h;
+  return w + "x" + h + (panel.grain ? ":locked" : "");
+}
+
+function colourMap(plan) {
+  var map = {};
+  var n = 0;
+  function take(key) {
+    if (map[key]) return;
+    map[key] = PANEL_COLOURS[n % PANEL_COLOURS.length];
+    n += 1;
+  }
+  plan.sheets.forEach(function (sheet) {
+    sheet.placements.forEach(function (panel) { take(sizeKey(panel)); });
+  });
+  plan.unplaced.forEach(function (panel) { take(sizeKey(panel)); });
+  return map;
+}
+
+function canonical(job) {
+  return JSON.stringify({
+    kerf_mm: job.kerf_mm,
+    available: job.available.map(function (row) { return [row.count, row.w, row.h]; }),
+    desired: job.desired.map(function (row) { return [row.count, row.w, row.h, row.grain ? 1 : 0]; })
+  });
+}
+
+function fittedText(x, y, w, h, lines, fill) {
+  var longest = 1;
+  lines.forEach(function (line) {
+    if (line.length > longest) longest = line.length;
+  });
+  var fs = Math.min(
+    90,
+    Math.floor((w * 0.9) / (longest * 0.62)),
+    Math.floor((h * 0.8) / (lines.length * 1.25))
+  );
+  if (!(fs >= 42)) return "";
+  var block = lines.length * fs * 1.15;
+  var start = y + (h - block) / 2 + fs * 0.82;
+  var out = "";
+  lines.forEach(function (line, index) {
+    var ty = start + index * fs * 1.15;
+    out += '<text x="' + (x + w / 2) + '" y="' + ty.toFixed(1) + '" text-anchor="middle" font-size="' + fs +
+      '" fill="' + fill + '" font-family="Palatino, Georgia, serif" stroke="#fffaf3" stroke-width="' +
+      Math.max(2, Math.floor(fs / 12)) + '" paint-order="stroke">' + esc(line) + "</text>";
+  });
+  return out;
+}
+
+function boardSvg(sheet, colours) {
+  var id = "s" + sheet.index;
+  var labelBits = sheet.placements.map(function (panel) {
+    return panel.w + " by " + panel.h + " at " + panel.x + "," + panel.y;
+  });
+  var label = "Sheet " + sheet.index + ", " + sheet.w + " by " + sheet.h + " millimetres. " + labelBits.join(". ");
+  var body = "";
+  body += '<defs>';
+  body += '<pattern id="waste-' + id + '" patternUnits="userSpaceOnUse" width="36" height="36" patternTransform="rotate(45)">';
+  body += '<rect width="36" height="36" fill="#f4e7d4"/><line x1="0" y1="0" x2="0" y2="36" stroke="#c4a484" stroke-width="10"/>';
+  body += "</pattern>";
+  body += '<pattern id="grain-' + id + '" patternUnits="userSpaceOnUse" width="70" height="70">';
+  body += '<line x1="8" y1="0" x2="8" y2="70" stroke="#1f1a14" stroke-opacity="0.28" stroke-width="3"/>';
+  body += "</pattern></defs>";
+  body += '<rect x="0" y="0" width="' + sheet.w + '" height="' + sheet.h + '" fill="url(#waste-' + id + ')"/>';
+  sheet.placements.forEach(function (panel) {
+    var fill = colours[sizeKey(panel)] || "#d7c4a8";
+    body += '<rect x="' + panel.x + '" y="' + panel.y + '" width="' + panel.w + '" height="' + panel.h +
+      '" fill="' + fill + '" stroke="#1f1a14" stroke-width="2" vector-effect="non-scaling-stroke"><title>' +
+      panel.w + " × " + panel.h + "</title></rect>";
+    if (panel.grain) {
+      body += '<rect x="' + panel.x + '" y="' + panel.y + '" width="' + panel.w + '" height="' + panel.h +
+        '" fill="url(#grain-' + id + ')"/>';
+    }
+  });
+  sheet.kerf.forEach(function (band) {
+    body += '<rect x="' + band.x + '" y="' + band.y + '" width="' + band.w + '" height="' + band.h +
+      '" fill="#1f1a14"><title>' + (band.w < band.h ? band.w : band.h) + " mm kerf</title></rect>";
+    var x1;
+    var y1;
+    var x2;
+    var y2;
+    if (band.w <= band.h) {
+      x1 = band.x + band.w / 2;
+      x2 = x1;
+      y1 = band.y;
+      y2 = band.y + band.h;
+    } else {
+      y1 = band.y + band.h / 2;
+      y2 = y1;
+      x1 = band.x;
+      x2 = band.x + band.w;
+    }
+    body += '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 +
+      '" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/>';
+  });
+  sheet.placements.forEach(function (panel) {
+    var lines = [panel.w + " × " + panel.h];
+    if (panel.rotated) lines.push("turned");
+    else if (panel.grain) lines.push("locked");
+    body += fittedText(panel.x, panel.y, panel.w, panel.h, lines, "#1f1a14");
+  });
+  sheet.waste.forEach(function (offcut) {
+    body += fittedText(offcut.x, offcut.y, offcut.w, offcut.h, [offcut.w + " × " + offcut.h, "offcut"], "#6d6256");
+  });
+  body += '<rect x="0" y="0" width="' + sheet.w + '" height="' + sheet.h +
+    '" fill="none" stroke="#1f1a14" stroke-width="3" vector-effect="non-scaling-stroke"/>';
+  return '<svg class="board" viewBox="0 0 ' + sheet.w + " " + sheet.h + '" style="aspect-ratio:' + sheet.w + " / " +
+    sheet.h + '" role="img" aria-label="' + esc(label) + '">' + body + "</svg>";
+}
+
+function chipsHtml(sheet, colours) {
+  var html = sheet.placements.map(function (panel, index) {
+    var note = panel.rotated ? " turned" : (panel.grain ? " face locked" : "");
+    return "<span class='chip'><i style='background:" + (colours[sizeKey(panel)] || "#d7c4a8") + "'></i>" +
+      (index + 1) + " · " + panel.w + " × " + panel.h + note + "</span>";
+  }).join("");
+  sheet.waste.forEach(function (offcut) {
+    html += "<span class='chip off'>offcut " + offcut.w + " × " + offcut.h + "</span>";
+  });
+  return "<p class='chips'>" + html + "</p>";
+}
+
+function fig(w, maxW, inner) {
+  var pct = (100 * w / maxW).toFixed(4);
+  return '<div class="fig" style="width:' + pct + '%">' + inner + "</div>";
+}
+
+function maxSheetWidth(plan) {
+  var maxW = 0;
+  plan.sheets.forEach(function (sheet) {
+    if (sheet.w > maxW) maxW = sheet.w;
+  });
+  if (!maxW) {
+    plan.unplaced.forEach(function (panel) {
+      maxW = Math.max(maxW, panel.w, panel.h);
+    });
+  }
+  return maxW || 1;
+}
+
+function legendHtml(plan, colours) {
+  var seen = {};
+  var items = "";
+  function add(key, label) {
+    if (seen[key]) return;
+    seen[key] = true;
+    items += "<li><i class='swatch' style='background:" + colours[key] + "'></i>" + esc(label) + "</li>";
+  }
+  plan.sheets.forEach(function (sheet) {
+    sheet.placements.forEach(function (panel) {
+      var name = mmSize(panel.source_w, panel.source_h);
+      if (panel.grain) name += ", face locked";
+      add(sizeKey(panel), name);
+    });
+  });
+  plan.unplaced.forEach(function (panel) {
+    var name = mmSize(panel.w, panel.h);
+    if (panel.grain) name += ", face locked";
+    add(sizeKey(panel), name);
+  });
+  items += "<li><i class='key off'></i> Offcut</li><li><i class='key kerf'></i> Kerf " + plan.kerf_mm + " mm</li>";
+  return items;
+}
+
+function unplacedHtml(plan, colours, maxW) {
+  if (!plan.unplaced.length) return "";
+  var html = "<div class='length-group'><h3>Did not fit</h3><p class='note'>Drawn at the same scale as the sheets. Nothing was added to the pull list for these.</p>";
+  plan.unplaced.forEach(function (panel) {
+    var tried = panel.grain
+      ? "Face direction locked, so " + panel.h + " × " + panel.w + " was not tried."
+      : (panel.w === panel.h
+        ? "Does not fit a stock sheet."
+        : "Tried " + panel.w + " × " + panel.h + " and " + panel.h + " × " + panel.w + ". Neither fits a stock sheet.");
+    var fake = {
+      index: "x",
+      w: panel.w,
+      h: panel.h,
+      placements: [{
+        x: 0, y: 0, w: panel.w, h: panel.h, rotated: false, grain: panel.grain,
+        source_w: panel.w, source_h: panel.h
+      }],
+      kerf: [],
+      waste: []
+    };
+    html += "<article class='board miss-piece'><div class='meta'><span class='idx'>Not placed</span><span class='stock'>" +
+      esc(mmSize(panel.w, panel.h)) + "</span></div>" + fig(panel.w, maxW, boardSvg(fake, colours)) +
+      "<p class='note'>" + esc(tried) + "</p></article>";
+  });
+  return html + "</div>";
+}
+
+function paint(job) {
+  var plan = packJob(job);
+  var error = document.getElementById("error");
+  if (plan.error) {
+    if (error) {
+      error.hidden = false;
+      error.textContent = plan.error;
+    }
+    ["pull-list", "pull-total", "leave-block", "missing-block", "cut-body", "cut-legend"].forEach(function (id) {
+      var node = document.getElementById(id);
+      if (node) node.innerHTML = "";
+    });
+    var pre = document.getElementById("lumber-text");
+    if (pre) pre.textContent = plan.error;
+    return;
+  }
+  if (error) error.hidden = true;
+
+  var mode = "plain";
+  if (typeof SAMPLE !== "undefined" && SAMPLE && canonical(job) === canonical(SAMPLE)) {
+    mode = SAMPLE.example ? "example" : "plain";
+  } else if (typeof SAMPLE !== "undefined" && SAMPLE) {
+    mode = "custom";
+  } else if (job.example) {
+    mode = "example";
+  }
+  var kicker = document.getElementById("kicker");
+  var banner = document.getElementById("banner");
+  if (kicker) {
+    kicker.textContent = mode === "custom" ? "Edited on this phone" : (mode === "example" ? "Example · synthetic job" : "Plasterboard");
+  }
+  if (banner) {
+    banner.textContent = mode === "custom"
+      ? "Edited on this phone. These sizes are not the shipped example, and they are not loaded from a job file. Restore example job puts the synthetic example back."
+      : "EXAMPLE / SYNTHETIC — not a real job. The counts and sizes shipped with this page are made up.";
+  }
+
+  var pulls = sheetGroups(plan.sheets, true);
+  var leaves = sheetGroups(plan.sheets, false);
+  var placedN = 0;
+  plan.sheets.forEach(function (sheet) { placedN += sheet.placements.length; });
+  var pullN = pulls.reduce(function (sum, group) { return sum + group.n; }, 0);
+  var leaveN = leaves.reduce(function (sum, group) { return sum + group.n; }, 0);
+  var stats = document.getElementById("stats");
+  if (stats) {
+    stats.innerHTML =
+      "<div><dt>Pull</dt><dd>" + pullN + " <small>sheets</small></dd></div>" +
+      "<div><dt>Leave</dt><dd>" + leaveN + " <small>sheets</small></dd></div>" +
+      "<div class='ok'><dt>Placed</dt><dd>" + placedN + " <small>panels</small></dd></div>" +
+      "<div class='" + (plan.unplaced.length ? "bad" : "ok") + "'><dt>Not placed</dt><dd>" +
+      plan.unplaced.length + " <small>panels</small></dd></div>";
+  }
+  var summary = document.getElementById("summary-note");
+  if (summary) {
+    var pullArea = 0;
+    pulls.forEach(function (group) { pullArea += group.n * group.w * group.h; });
+    summary.textContent = "Saw kerf " + job.kerf_mm + " mm. Pull " + areaLabel(pullArea) +
+      ". Packing is guillotine best-area fit with a shorter-leftover split, not an exact optimum.";
+  }
+
+  var pullHtml = pulls.map(function (group) {
+    return "<li><label><input type='checkbox'><span class='count'>" + group.n +
+      "</span><span class='mm'>" + esc(mmSize(group.w, group.h)) + "</span><span class='m'>" +
+      esc(areaLabel(group.w * group.h)) + " each</span></label></li>";
+  }).join("");
+  if (!pullHtml) pullHtml = "<li><p class='note'>No sheet is cut in this plan.</p></li>";
+  var pullList = document.getElementById("pull-list");
+  if (pullList) pullList.innerHTML = pullHtml;
+  var pullTotal = document.getElementById("pull-total");
+  if (pullTotal) {
+    var totalArea = 0;
+    pulls.forEach(function (group) { totalArea += group.n * group.w * group.h; });
+    pullTotal.textContent = pullN ? (pullN + " sheets · " + areaLabel(totalArea)) : "";
+  }
+
+  var leaveBlock = document.getElementById("leave-block");
+  if (leaveBlock) {
+    if (leaves.length) {
+      var leaveItems = leaves.map(function (group) {
+        return "<li><span class='count'>" + group.n + "</span><span class='mm'>" + esc(mmSize(group.w, group.h)) +
+          "</span><span class='m'>" + esc(areaLabel(group.w * group.h)) + " each</span></li>";
+      }).join("");
+      leaveBlock.innerHTML = "<h3>Leave on the rack</h3><ul class='leave'>" + leaveItems + "</ul>";
+    } else {
+      leaveBlock.innerHTML = "<h3>Leave on the rack</h3><p class='note'>Every available sheet is cut in this plan.</p>";
+    }
+  }
+
+  var missingBlock = document.getElementById("missing-block");
+  if (missingBlock) {
+    if (plan.unplaced.length) {
+      var bits = panelGroups(plan.unplaced).map(function (group) {
+        var lock = group.grain ? "face locked" : "turns allowed";
+        return group.n + " × " + mmSize(group.w, group.h) + " (" + lock + ")";
+      }).join(", ");
+      missingBlock.innerHTML = "<h3>Panels that did not fit</h3><p>" + esc(bits) +
+        "</p><p class='note'>These sizes are from the panel list. This page does not choose a sheet to buy. The drawing is with the cut plan, at the same scale.</p>";
+    } else {
+      missingBlock.innerHTML = "<p class='note'>Every panel is on a sheet in the cut plan.</p>";
+    }
+  }
+
+  var colours = colourMap(plan);
+  var legend = document.getElementById("cut-legend");
+  if (legend) legend.innerHTML = legendHtml(plan, colours);
+  var cutNote = document.getElementById("cut-note");
+  if (cutNote) {
+    cutNote.textContent = "Each sheet is to scale with the others. Hatched areas are offcuts. The dark strip is the " +
+      job.kerf_mm + " mm saw kerf, drawn with a hairline so a thin blade still shows. A panel marked turned was rotated 90°. Locked panels keep the width and height you entered. Sheet numbers follow the stock list after counts are expanded. A number that is missing here was left on the rack.";
+  }
+
+  var maxW = maxSheetWidth(plan);
+  var html = "";
+  var previous = "";
+  plan.sheets.forEach(function (sheet) {
+    if (!sheet.used) return;
+    var key = sheet.w + "x" + sheet.h;
+    if (key !== previous) {
+      if (previous) html += "</div>";
+      html += "<div class='length-group'><h3>" + esc(mmSize(sheet.w, sheet.h)) + "</h3>";
+      previous = key;
+    }
+    var wasteArea = 0;
+    sheet.waste.forEach(function (offcut) { wasteArea += offcut.w * offcut.h; });
+    html += "<article class='board'><div class='meta'><span class='idx'>Sheet " + sheet.index +
+      "</span><span class='stock'>" + esc(mmSize(sheet.w, sheet.h)) + "</span><span class='cuts-n'>" +
+      sheet.placements.length + " panels · offcut " + esc(areaLabel(wasteArea)) + "</span></div>" +
+      fig(sheet.w, maxW, boardSvg(sheet, colours)) + chipsHtml(sheet, colours) +
+      "<p class='check'>" + esc(equation(sheet)) + "</p></article>";
+  });
+  if (previous) html += "</div>";
+  if (!plan.sheets.length) html += "<p class='note'>No stock sheets.</p>";
+  html += unplacedHtml(plan, colours, maxW);
+  var cutBody = document.getElementById("cut-body");
+  if (cutBody) cutBody.innerHTML = html;
+
+  var pre = document.getElementById("lumber-text");
+  if (pre) {
+    var textJob = mode === "example" && SAMPLE ? SAMPLE : job;
+    pre.textContent = shopText(plan, textJob, mode === "custom");
+  }
+  var editNote = document.getElementById("edit-note");
+  if (editNote) {
+    var stockN = job.available.reduce(function (sum, row) { return sum + row.count; }, 0);
+    var pieceN = job.desired.reduce(function (sum, row) { return sum + row.count; }, 0);
+    editNote.textContent = job.available.length + " stock rows, " + stockN + " sheets on hand. " +
+      job.desired.length + " panel rows, " + pieceN + " panels. Width runs across the sheet. Height runs down the drawing. A locked panel is not turned.";
+  }
+}
+
+function rowFields(kind, row) {
+  var count = row ? row.count : "";
+  var width = row ? row.w : "";
+  var height = row ? row.h : "";
+  var lock = "";
+  if (kind === "panel") {
+    lock = '<label class="lock"><input type="checkbox"' + (row && row.grain ? " checked" : "") +
+      "> Face direction locked</label>";
+  }
+  return '<div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="' +
+    count + '"></label><label>Width mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="' +
+    width + '"></label><label>Height mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="' +
+    height + '"></label><button type="button" class="remove ghost">Remove</button>' + lock + "</div>";
+}
+
+function fillForm(job) {
+  document.getElementById("stock-rows").innerHTML = job.available.map(function (row) {
+    return rowFields("stock", row);
+  }).join("");
+  document.getElementById("panel-rows").innerHTML = job.desired.map(function (row) {
+    return rowFields("panel", row);
+  }).join("");
+  document.getElementById("kerf-input").value = String(job.kerf_mm);
+}
+
+function readRows(container, withGrain) {
+  var rows = [];
+  container.querySelectorAll(".edit-row").forEach(function (row) {
+    var inputs = row.querySelectorAll("input");
+    var count = parseInt(inputs[0].value, 10);
+    var width = parseInt(inputs[1].value, 10);
+    var height = parseInt(inputs[2].value, 10);
+    if (!(count > 0 && width > 0 && height > 0)) return;
+    var item = {count: count, w: width, h: height};
+    if (withGrain) item.grain = !!(inputs[3] && inputs[3].checked);
+    rows.push(item);
+  });
+  return rows;
+}
+
+function readJob() {
+  var kerf = parseInt(document.getElementById("kerf-input").value, 10);
+  if (!(kerf >= 0)) return null;
+  return {
+    kerf_mm: kerf,
+    example: false,
+    available: readRows(document.getElementById("stock-rows"), false),
+    desired: readRows(document.getElementById("panel-rows"), true)
+  };
+}
+
+function validJob(job) {
+  if (!job || typeof job.kerf_mm !== "number" || job.kerf_mm < 0) return false;
+  if (!Array.isArray(job.available) || !Array.isArray(job.desired)) return false;
+  return job.available.concat(job.desired).every(function (row) {
+    return row && row.count > 0 && row.w > 0 && row.h > 0;
+  });
+}
+
+function boot() {
+  var edit = document.getElementById("edit");
+  if (!edit || !SAMPLE) return;
+  var timer = 0;
+  function apply() {
+    var job = readJob();
+    if (!job) return;
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(job)); } catch (err) { /* private mode */ }
+    paint(job);
+  }
+  var editLink = document.querySelector('a[href="#edit"]');
+  if (editLink) editLink.addEventListener("click", function () { edit.open = true; });
+  if (location.hash === "#edit") edit.open = true;
+  edit.addEventListener("input", function () {
+    clearTimeout(timer);
+    timer = setTimeout(apply, 150);
+  });
+  edit.addEventListener("click", function (event) {
+    var button = event.target.closest("button");
+    if (!button || !button.classList.contains("remove")) return;
+    var row = button.closest(".edit-row");
+    if (row) row.remove();
+    apply();
+  });
+  document.getElementById("add-stock").addEventListener("click", function () {
+    var box = document.getElementById("stock-rows");
+    box.insertAdjacentHTML("beforeend", rowFields("stock", null));
+    var field = box.querySelector(".edit-row:last-child input");
+    if (field) field.focus();
+  });
+  document.getElementById("add-panel").addEventListener("click", function () {
+    var box = document.getElementById("panel-rows");
+    box.insertAdjacentHTML("beforeend", rowFields("panel", null));
+    var field = box.querySelector(".edit-row:last-child input");
+    if (field) field.focus();
+  });
+  document.getElementById("restore-sample").addEventListener("click", function () {
+    try { localStorage.removeItem(STORAGE_KEY); } catch (err) { /* private mode */ }
+    fillForm(SAMPLE);
+    paint(SAMPLE);
+  });
+  var saved = null;
+  try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null"); } catch (err) { saved = null; }
+  if (validJob(saved)) {
+    fillForm(saved);
+    paint(saved);
+  } else {
+    fillForm(SAMPLE);
+    paint(SAMPLE);
+  }
+}
+
+if (typeof document !== "undefined") boot();
+
+</script>
+<script>
+function listText() {
+  return document.getElementById("lumber-text").textContent;
+}
+function selectList(pre) {
+  if (pre.parentElement && pre.parentElement.open === false) pre.parentElement.open = true;
+  var range = document.createRange();
+  range.selectNodeContents(pre);
+  var sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  pre.scrollIntoView({behavior: "smooth", block: "center"});
+}
+function flash(button, label) {
+  var previous = button.getAttribute("data-label") || button.textContent;
+  button.setAttribute("data-label", previous);
+  button.textContent = label;
+  setTimeout(function () { button.textContent = button.getAttribute("data-label"); }, 1600);
+}
+document.getElementById("print-btn").addEventListener("click", function () { window.print(); });
+document.getElementById("copy-btn").addEventListener("click", async function () {
+  var button = this;
+  var pre = document.getElementById("lumber-text");
+  try {
+    await navigator.clipboard.writeText(listText());
+    flash(button, "Copied");
+  } catch (err) {
+    selectList(pre);
+    flash(button, "Selected");
+  }
+});
+document.getElementById("share-btn").addEventListener("click", async function () {
+  var button = this;
+  var text = listText();
+  if (navigator.share) {
+    try {
+      await navigator.share({title: "Planker plasterboard list", text: text});
+      flash(button, "Shared");
+      return;
+    } catch (err) {
+      if (err && err.name === "AbortError") return;
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    flash(button, "Copied");
+  } catch (err) {
+    selectList(document.getElementById("lumber-text"));
+    flash(button, "Selected");
+  }
+});
+</script>
+</body>
+</html>

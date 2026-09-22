@@ -4,6 +4,9 @@ Small CLI tool to allocate available plank lengths to desired lengths. It uses a
 greedy algorithm that cuts the smallest available plank that fits each desired
 length.
 
+Plasterboard is a separate 2D page. It does not change the timber cutter.
+See [Plasterboard sheets](#plasterboard-sheets).
+
 Usage:
 
 ```
@@ -26,4 +29,63 @@ count and length, e.g., [2, 1000] means two segments of 1000 mm each.
   "available": [[4, 10000], [5, 8000]],
   "desired": [[2, 6000], [1, 4000], [2, 2000], [1, 9000], [1, 5000]]
 }
+```
+
+## Plasterboard sheets
+
+A phone page that lays rectangular panels onto rectangular stock sheets.
+The timber command above is unchanged. This planner does not read
+`input.json`.
+
+`example-plaster.json` is an **example / synthetic** job. The counts and
+sizes are made up. They are not a real bill of materials. The sheet sizes
+in that file (1200×2400, 1200×3000, 1350×3600 mm) are typical Australian
+plasterboard, used only so the drawing has familiar proportions.
+
+```bash
+python3 plaster.py example-plaster.json
+python3 plaster.py --html docs/plaster-cut-plan.html example-plaster.json
+```
+
+Open [`docs/plaster-cut-plan.html`](docs/plaster-cut-plan.html) on a phone:
+
+- **iPhone or iPad:** AirDrop the file, or copy it into Files, then open it
+  in Safari. From Files you can also use Share → Open in Safari.
+- **Android:** copy the file onto the phone and open it in Chrome.
+
+Nothing to install. The page works offline. There is no camera.
+
+The first screen is the sheets to pull. Tick a row at the rack.
+**Share**, **Copy**, and **Print** sit in the bar at the bottom. Share
+sends the plain-text list. **Edit stock and panels** changes counts and
+millimetre width × height on the phone, and the list and the drawings
+update. **Restore example job** puts the synthetic example back. Edits
+stay on that device until you restore.
+
+Saw kerf is the named setting `kerf_mm`. The default is **3 mm**, about a
+circular-saw or panel-saw blade. Set it to **0** for score-and-snap, which
+does not remove a strip. A panel that lands flush with an edge has no kerf
+on that edge. A gap thinner than the kerf is refused.
+
+Packing is a **guillotine best-area fit with a shorter-leftover split**.
+It is not an exact optimum.
+
+- Panels are placed largest longer-side first.
+- Each panel goes into the free rectangle that leaves the smallest offcut
+  area. Ties prefer a sheet already in use, then an unturned panel, then
+  the earlier sheet.
+- The panel may be turned 90° unless **face direction locked** is set.
+  Stock sheets are not turned. Width runs across the sheet. Height runs
+  down the drawing.
+- The leftover of that rectangle is one through-cut. If the leftover width
+  is less than the leftover height, the cut runs the full height of the
+  rectangle. Otherwise it runs the full width.
+- The kerf is taken out of that cut.
+
+The page draws each cut sheet to scale, with offcuts hatched and panels
+that did not fit drawn at the same scale. It does not invent a sheet to
+buy for those panels.
+
+```bash
+python3 -m unittest discover -s tests -v
 ```

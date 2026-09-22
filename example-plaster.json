@@ -1,0 +1,21 @@
+{
+  "example": true,
+  "title": "EXAMPLE — synthetic plasterboard job",
+  "note": "Not a real bill of materials. Counts and sizes are made up. Sheet sizes are typical Australian plasterboard, used only so the drawing has familiar proportions.",
+  "kerf_mm": 3,
+  "available": [
+    {"count": 3, "w": 1200, "h": 2400},
+    {"count": 1, "w": 1350, "h": 3600},
+    {"count": 1, "w": 1200, "h": 2400},
+    {"count": 2, "w": 1200, "h": 3000}
+  ],
+  "desired": [
+    {"count": 1, "w": 2400, "h": 500, "grain": false},
+    {"count": 2, "w": 450, "h": 2400, "grain": true},
+    {"count": 1, "w": 1350, "h": 3000, "grain": false},
+    {"count": 2, "w": 1200, "h": 900, "grain": false},
+    {"count": 1, "w": 600, "h": 1200, "grain": false},
+    {"count": 1, "w": 800, "h": 500, "grain": false},
+    {"count": 1, "w": 1500, "h": 2800, "grain": false}
+  ]
+}
