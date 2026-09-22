@@ -303,9 +303,8 @@ def _bar_svg(board: BoardPlan, plan: Plan, colours: dict[int, str], max_mm: int)
     label_y = top + bar_h / 2 + font * 0.35
     parts: list[str] = [
         (
-            f'<svg class="bar" viewBox="0 0 {max_mm} {height}" '
-            f'role="img" aria-label="{_esc(_bar_label(board, plan))}" '
-            'style="font-family: Segoe UI, Helvetica Neue, Arial, sans-serif">'
+            f'<svg class="bar" viewBox="0 0 {max_mm} {height}" preserveAspectRatio="none" '
+            f'role="img" aria-label="{_esc(_bar_label(board, plan))}">'
         ),
         (
             "<defs>"
@@ -390,89 +389,76 @@ def _bar_label(board: BoardPlan, plan: Plan) -> str:
     return f"Board {board.index}, {board.stock_mm} mm, cuts {cuts}, offcut {left} mm"
 
 
-def _ruler_svg(max_mm: int) -> str:
+def _ruler_html(max_mm: int) -> str:
+    """Millimetre scale in HTML so the labels stay readable on a phone."""
     labels = [0]
     for tick in range(1000, max_mm, 1000):
         if max_mm - tick >= 800:
             labels.append(tick)
     if max_mm not in labels:
         labels.append(max_mm)
-    height = 200
-    chunks = [
-        f'<svg class="ruler" viewBox="0 0 {max_mm} {height}" aria-hidden="true" '
-            'style="font-family: Segoe UI, Helvetica Neue, Arial, sans-serif">'
-    ]
-    for tick in range(0, max_mm + 1, 500):
+    ticks = []
+    seen = set()
+    for tick in list(range(0, max_mm + 1, 500)) + [max_mm]:
+        if tick in seen or tick > max_mm:
+            continue
+        seen.add(tick)
         major = tick % 1000 == 0 or tick == max_mm
-        y1 = 40 if major else 80
-        chunks.append(
-            f'<line x1="{tick}" y1="{y1}" x2="{tick}" y2="150" stroke="#8a7b68" '
-            f'stroke-width="{"10" if major else "6"}"/>'
-        )
-    if max_mm % 500 != 0:
-        chunks.append(
-            f'<line x1="{max_mm}" y1="40" x2="{max_mm}" y2="150" stroke="#8a7b68" stroke-width="10"/>'
-        )
+        pct = 100 * tick / max_mm
+        kind = "major" if major else "minor"
+        ticks.append(f'<i class="{kind}" style="left:{pct:.4f}%"></i>')
+    marks = []
     for tick in labels:
-        anchor = "start" if tick == 0 else "end" if tick == max_mm else "middle"
-        chunks.append(
-            f'<text x="{tick}" y="190" text-anchor="{anchor}" fill="#6d6256" font-size="120">'
-            f"{tick}</text>"
-        )
-    chunks.append("</svg>")
-    return "".join(chunks)
+        pct = 100 * tick / max_mm
+        cls = "start" if tick == 0 else "end" if tick == max_mm else "mid"
+        marks.append(f'<span class="{cls}" style="left:{pct:.4f}%">{tick}</span>')
+    return f'<div class="ruler" aria-hidden="true">{"".join(ticks)}{"".join(marks)}</div>'
 
 
-def _count_table(
+def _count_list(
     rows: tuple[tuple[int, int], ...],
     colours: dict[int, str],
     placed: dict[int, int] | None = None,
 ) -> str:
-    head = "<tr><th>Length</th><th class='num'>Count</th>"
-    if placed is not None:
-        head += "<th class='num'>Placed</th><th class='num'>Not placed</th>"
-    head += "</tr>"
-    body = []
+    """Big rows a thumb can scan. Same lengths as the input, not a dense table."""
+    items = []
     for length, count in rows:
         swatch = colours.get(length)
         swatch_html = (
             f"<i class='swatch' style='background:{swatch}'></i>" if swatch else ""
         )
-        cells = (
-            f"<td>{swatch_html}{mm_text(length)}</td>"
-            f"<td class='num'>{count}</td>"
-        )
+        detail = ""
         if placed is not None:
             got = placed.get(length, 0)
             missing = count - got
-            missing_cls = "num miss" if missing else "num"
-            cells += f"<td class='num'>{got}</td><td class='{missing_cls}'>{missing}</td>"
-        body.append(f"<tr>{cells}</tr>")
-    if not body:
-        colspan = 4 if placed is not None else 2
-        body.append(f"<tr><td colspan='{colspan}'>None</td></tr>")
-    return f"<table><thead>{head}</thead><tbody>{''.join(body)}</tbody></table>"
-
-
-def _input_table(rows: tuple[tuple[int, int], ...]) -> str:
-    body = []
-    for index, (count, length) in enumerate(rows, start=1):
-        body.append(
-            "<tr>"
-            f"<td class='num'>{index}</td>"
-            f"<td class='num'>{count}</td>"
-            f"<td class='num'>{length}</td>"
-            f"<td>{metres(length)}</td>"
-            "</tr>"
+            miss = f" · <b class='miss'>{missing} not placed</b>" if missing else ""
+            detail = f"<span class='sub'>{got} placed{miss}</span>"
+        items.append(
+            "<li>"
+            f"<span class='count'>{count}</span>"
+            f"<span class='mm'>{swatch_html}{_esc(mm_text(length))}</span>"
+            f"{detail}"
+            "</li>"
         )
-    if not body:
-        body.append("<tr><td colspan='4'>None</td></tr>")
-    return (
-        "<table><thead><tr><th class='num'>Row</th><th class='num'>Count</th>"
-        "<th class='num'>Length (mm)</th><th>Same length</th></tr></thead><tbody>"
-        + "".join(body)
-        + "</tbody></table>"
-    )
+    if not items:
+        items.append("<li><span class='mm'>None</span></li>")
+    return f"<ul class='rows'>{''.join(items)}</ul>"
+
+
+def _input_list(rows: tuple[tuple[int, int], ...]) -> str:
+    items = []
+    for index, (count, length) in enumerate(rows, start=1):
+        items.append(
+            "<li>"
+            f"<span class='idx'>Row {index}</span>"
+            f"<span class='count'>{count} ×</span>"
+            f"<span class='mm'>{length} mm</span>"
+            f"<span class='m'>{metres(length)}</span>"
+            "</li>"
+        )
+    if not items:
+        items.append("<li><span class='mm'>None</span></li>")
+    return f"<ul class='rows entered'>{''.join(items)}</ul>"
 
 
 def _chips(board: BoardPlan, plan: Plan, colours: dict[int, str]) -> str:
@@ -500,27 +486,31 @@ _PAGE_CSS = """
   --stamp: #8c2f1b;
   --ok: #1f7a4d;
   --shadow: 0 16px 40px rgba(60, 40, 20, 0.08);
+  --dock: 76px;
 }
 * { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font: 16px/1.45 "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font: 18px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  touch-action: manipulation;
 }
 .sheet {
-  max-width: 960px;
-  margin: 28px auto 48px;
+  max-width: 880px;
+  margin: 0 auto;
   background: var(--sheet);
-  border: 1px solid var(--rule);
-  box-shadow: var(--shadow);
-  padding: 32px 36px 48px;
+  padding: 16px 16px calc(var(--dock) + env(safe-area-inset-bottom));
 }
-header.top { border-top: 8px solid var(--stamp); padding-top: 18px; }
+header.top {
+  border-top: 8px solid var(--stamp);
+  padding-top: 14px;
+}
 .kicker {
   margin: 0;
   color: var(--stamp);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -528,44 +518,42 @@ header.top { border-top: 8px solid var(--stamp); padding-top: 18px; }
 h1 {
   margin: 4px 0 0;
   font-family: Palatino, "Palatino Linotype", "Iowan Old Style", Georgia, serif;
-  font-size: 40px;
+  font-size: 34px;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.05;
 }
-.lede { margin: 8px 0 0; color: var(--muted); max-width: 62ch; }
-nav.jumps { display: flex; gap: 16px; margin: 16px 0 0; font-size: 14px; }
-nav.jumps a { color: var(--stamp); }
-.actions { display: flex; gap: 8px; margin-top: 16px; }
-button {
-  background: var(--ink);
-  color: var(--sheet);
-  border: 0;
-  border-radius: 4px;
-  padding: 8px 14px;
-  font: inherit;
-  cursor: pointer;
+.lede { margin: 8px 0 0; color: var(--muted); font-size: 17px; }
+nav.jumps { display: flex; gap: 4px 18px; flex-wrap: wrap; margin: 12px 0 0; }
+nav.jumps a {
+  color: var(--stamp);
+  font-size: 17px;
+  font-weight: 700;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
 }
-button.ghost { background: transparent; color: var(--ink); border: 1px solid var(--rule); }
 h2 {
-  margin: 36px 0 8px;
+  margin: 28px 0 8px;
   font-family: Palatino, "Palatino Linotype", Georgia, serif;
   font-size: 28px;
   line-height: 1.15;
   break-after: avoid;
 }
-h3 { margin: 22px 0 6px; font-size: 16px; break-after: avoid; }
-p.note, .footnote { color: var(--muted); font-size: 14px; }
+h3 { margin: 22px 0 6px; font-size: 18px; break-after: avoid; }
+p.note, .footnote { color: var(--muted); font-size: 16px; }
 .stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  margin: 20px 0 8px;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 16px 0 8px;
 }
 .stats div {
   border: 1px solid var(--line);
   background: #fff;
   padding: 10px 12px 12px;
+  min-height: 72px;
 }
 .stats dt {
   margin: 0;
@@ -576,57 +564,62 @@ p.note, .footnote { color: var(--muted); font-size: 14px; }
   text-transform: uppercase;
 }
 .stats dd { margin: 2px 0 0; font-size: 28px; font-variant-numeric: tabular-nums; font-weight: 700; }
-.stats dd small { font-size: 14px; font-weight: 600; color: var(--muted); margin-left: 4px; }
+.stats dd small { font-size: 15px; font-weight: 600; color: var(--muted); margin-left: 4px; }
 .stats .bad dd { color: var(--stamp); }
 .stats .ok dd { color: var(--ok); }
-.pull, .leave { list-style: none; margin: 0; padding: 0 0 0 12px; }
-.pull { border-left: 4px solid var(--stamp); }
-.leave { border-left: 4px solid #c4b39a; }
-.total { margin: 8px 0 0; font-weight: 700; font-variant-numeric: tabular-nums; }
-.pull li, .leave li { border-top: 1px solid var(--line); }
+.pull, .leave, .rows { list-style: none; margin: 0; padding: 0; }
+.pull { border-left: 4px solid var(--stamp); padding-left: 12px; }
+.leave { border-left: 4px solid #c4b39a; padding-left: 12px; }
+.total { margin: 8px 0 0; font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; }
+.pull li, .leave li, .rows li { border-top: 1px solid var(--line); }
 .pull label, .leave li {
   display: grid;
-  grid-template-columns: 28px 72px 1fr auto;
-  gap: 10px;
-  align-items: baseline;
+  grid-template-columns: 52px 1fr;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 0;
+  min-height: 84px;
   padding: 12px 0;
 }
-.leave li { grid-template-columns: 72px 1fr auto; }
-.pull input { width: 20px; height: 20px; accent-color: var(--stamp); }
-.count {
-  font-size: 32px;
+.leave li { grid-template-columns: 1fr; min-height: 76px; }
+.pull input {
+  grid-row: 1 / span 3;
+  width: 28px;
+  height: 28px;
+  justify-self: center;
+  accent-color: var(--stamp);
+}
+.pull .count, .leave .count, .rows .count {
+  font-size: 40px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
-.mm { font-size: 22px; font-variant-numeric: tabular-nums; }
-.m { color: var(--muted); font-variant-numeric: tabular-nums; }
-table { width: 100%; border-collapse: collapse; margin: 8px 0 16px; }
-th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
-th {
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-  font-weight: 700;
+.mm { font-size: 26px; font-variant-numeric: tabular-nums; font-weight: 700; }
+.m, .sub, .rows .idx { color: var(--muted); font-size: 16px; font-variant-numeric: tabular-nums; }
+.rows li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  min-height: 56px;
+  padding: 12px 0;
 }
-.num { text-align: right; font-variant-numeric: tabular-nums; }
-tr { break-inside: avoid; }
-.keep { break-inside: avoid; }
-td.miss { color: var(--stamp); font-weight: 700; }
+.rows .count { font-size: 28px; }
+.rows .mm { font-size: 20px; }
+.rows .idx { min-width: 4.2em; font-weight: 700; }
+b.miss { color: var(--stamp); }
 .swatch, .chip i {
   display: inline-block;
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   margin-right: 8px;
   vertical-align: -1px;
   border: 1px solid rgba(31, 26, 20, 0.25);
 }
-.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; list-style: none; padding: 0; margin: 8px 0 16px; }
-.legend li { display: flex; align-items: center; gap: 8px; font-size: 14px; }
-.key {
-  width: 28px; height: 14px; border: 1px solid rgba(31, 26, 20, 0.35);
-}
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; list-style: none; padding: 0; margin: 8px 0 12px; }
+.legend li { display: flex; align-items: center; gap: 8px; font-size: 16px; min-height: 32px; }
+.key { width: 28px; height: 16px; border: 1px solid rgba(31, 26, 20, 0.35); }
 .key.kerf { background: #1f1a14; }
 .key.off {
   background: repeating-linear-gradient(45deg, #f4e7d4, #f4e7d4 3px, #c4a484 3px, #c4a484 5px);
@@ -634,69 +627,142 @@ td.miss { color: var(--stamp); font-weight: 700; }
 .key.idle {
   background: repeating-linear-gradient(45deg, #f7f1e6, #f7f1e6 4px, #d9cbb8 4px, #d9cbb8 6px);
 }
-.viz { min-width: 0; }
-.ruler-row { padding-top: 0; padding-bottom: 0; border-top: 0; }
+.viz { min-width: 0; width: 100%; }
 .board {
-  display: grid;
-  grid-template-columns: 88px 1fr 96px;
-  gap: 12px;
-  align-items: start;
-  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 0;
   border-top: 1px solid var(--line);
   break-inside: avoid;
 }
 .board.idle { background: #f6f0e6; }
-.meta, .offcut { padding-top: 8px; }
-.idx, .cuts-n { display: block; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-.cuts-n { letter-spacing: 0; text-transform: none; }
-.stock { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.offcut { text-align: right; }
-.offcut strong { display: block; font-size: 22px; font-variant-numeric: tabular-nums; }
-.offcut span { display: block; color: var(--muted); font-size: 12px; }
+.ruler-row { border-top: 0; padding-top: 0; padding-bottom: 0; }
+.ruler-row .meta, .ruler-row > div:last-child { display: none; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+.idx { color: var(--muted); font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.cuts-n { color: var(--muted); font-size: 16px; }
+.stock { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.offcut { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.offcut strong { font-size: 32px; font-variant-numeric: tabular-nums; line-height: 1; }
+.offcut span { color: var(--muted); font-size: 16px; }
 .tag.short { color: var(--stamp); font-weight: 700; }
 .tag.keep { color: var(--ok); font-weight: 700; }
-.phrase { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
-.bar, .ruler { width: 100%; height: auto; display: block; }
-.chips { margin: 6px 0 0; }
+.phrase { margin: 0; color: var(--muted); font-size: 16px; }
+.bar { width: 100%; height: 72px; display: block; }
+.bar text { display: none; }
+.ruler { position: relative; height: 36px; margin: 0; }
+.ruler i {
+  position: absolute;
+  bottom: 0;
+  width: 1px;
+  background: #8a7b68;
+}
+.ruler i.major { height: 12px; }
+.ruler i.minor { height: 7px; }
+.ruler span {
+  position: absolute;
+  top: 0;
+  font-size: 14px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ruler span.mid { transform: translateX(-50%); }
+.ruler span.end { transform: translateX(-100%); }
+.chips { margin: 4px 0 0; }
 .chip {
   display: inline-flex;
   align-items: center;
-  margin: 0 6px 6px 0;
-  padding: 2px 6px 2px 4px;
+  min-height: 40px;
+  margin: 0 8px 8px 0;
+  padding: 6px 10px 6px 8px;
   background: #fff;
   border: 1px solid var(--line);
   font-variant-numeric: tabular-nums;
-  font-size: 13px;
+  font-size: 17px;
 }
 .chip.off, .chip.quiet { color: var(--muted); }
-.check { margin: 4px 0 0; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.check { margin: 0; color: var(--muted); font-size: 15px; font-variant-numeric: tabular-nums; }
+.plain-wrap summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  cursor: pointer;
+}
 pre.plain {
   background: #fff;
   border: 1px solid var(--line);
   padding: 12px 14px;
   overflow: auto;
-  font: 13px/1.45 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font: 15px/1.45 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 }
 .length-group { margin-top: 8px; }
 .length-group h3 { margin-bottom: 0; }
-@media (max-width: 720px) {
-  .sheet { margin: 0; border: 0; padding: 20px 16px 32px; }
-  h1 { font-size: 32px; }
-  .stats { grid-template-columns: 1fr 1fr; }
-  .board { grid-template-columns: 1fr auto; }
-  .meta { grid-column: 1 / -1; display: flex; gap: 12px; align-items: baseline; }
-  .ruler-row .meta { display: none; }
-  .pull label { grid-template-columns: 24px 56px 1fr; }
-  .pull .m { grid-column: 2 / -1; }
-  .leave li { grid-template-columns: 56px 1fr; }
-  .leave .m { grid-column: 1 / -1; }
+.keep { break-inside: avoid; }
+button {
+  background: var(--ink);
+  color: var(--sheet);
+  border: 0;
+  border-radius: 8px;
+  min-height: 48px;
+  padding: 10px 12px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+button.ghost { background: #fff; color: var(--ink); border: 1px solid var(--rule); }
+.dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  background: rgba(255, 250, 243, 0.97);
+  border-top: 1px solid var(--rule);
+}
+.dock button { flex: 1; font-size: 17px; }
+@media (min-width: 680px) {
+  .sheet {
+    margin: 20px auto 32px;
+    padding: 28px 28px calc(var(--dock) + 24px);
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow);
+  }
+  h1 { font-size: 40px; }
+  .stats { grid-template-columns: repeat(4, 1fr); }
+  .board {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr) 132px;
+    gap: 12px;
+    align-items: start;
+  }
+  .ruler-row .meta, .ruler-row > div:last-child { display: block; }
+  .meta { display: block; padding-top: 8px; }
+  .offcut { display: block; text-align: right; padding-top: 8px; }
+  .offcut span { display: block; }
+  .dock {
+    left: 50%;
+    right: auto;
+    width: min(880px, calc(100% - 32px));
+    transform: translateX(-50%);
+    border: 1px solid var(--rule);
+    border-bottom: 0;
+    border-radius: 12px 12px 0 0;
+  }
 }
 @page { size: A4; margin: 12mm; }
 @media print {
   body { background: #fff; }
   .sheet { margin: 0; max-width: none; border: 0; box-shadow: none; padding: 0; }
-  .no-print { display: none !important; }
+  .no-print, .dock { display: none !important; }
   .cut-plan { break-before: page; }
+  .bar { height: 28px; }
   a { color: inherit; text-decoration: none; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
@@ -760,20 +826,20 @@ def render_html(plan: Plan) -> str:
             "Nothing further to buy for these cuts.</p>"
         )
 
-    balance_rows = []
+    balance_items = []
     pull_map = dict(pulls)
     leave_map = dict(leaves)
     for length, count in plan.on_hand_counts():
-        balance_rows.append(
-            "<tr>"
-            f"<td>{_esc(mm_text(length))}</td>"
-            f"<td class='num'>{count}</td>"
-            f"<td class='num'>{pull_map.get(length, 0)}</td>"
-            f"<td class='num'>{leave_map.get(length, 0)}</td>"
-            "</tr>"
+        balance_items.append(
+            "<li>"
+            f"<span class='mm'>{_esc(mm_text(length))}</span>"
+            "<span class='sub'>"
+            f"On hand {count} · Pull {pull_map.get(length, 0)} · Leave {leave_map.get(length, 0)}"
+            "</span>"
+            "</li>"
         )
-    if not balance_rows:
-        balance_rows.append("<tr><td colspan='4'>No available boards.</td></tr>")
+    if not balance_items:
+        balance_items.append("<li><span class='mm'>No available boards.</span></li>")
 
     max_mm = max((board.stock_mm for board in plan.boards), default=0)
     groups: list[str] = []
@@ -827,7 +893,7 @@ def render_html(plan: Plan) -> str:
     elif not plan.boards:
         groups.append("<p class='note'>No available boards.</p>")
 
-    ruler = _ruler_svg(max_mm) if max_mm else ""
+    ruler = _ruler_html(max_mm) if max_mm else ""
     ruler_row = (
         f'<div class="board ruler-row"><div class="meta"></div><div class="viz">{ruler}</div><div></div></div>'
         if ruler
@@ -853,7 +919,8 @@ def render_html(plan: Plan) -> str:
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f3ecdf">
 <title>Planker cut plan</title>
 <style>{_PAGE_CSS}</style>
 </head>
@@ -862,16 +929,12 @@ def render_html(plan: Plan) -> str:
 <header class="top">
   <p class="kicker">Planker</p>
   <h1>Cut plan and lumber list</h1>
-  <p class="lede">Greedy best fit, longest piece first. Kerf is {plan.kerf_mm} mm between cuts on the same board, and not after the last cut. Lengths are the millimetres in the input.</p>
+  <p class="lede">Open this page on your phone at the yard. Tick a row as you pull that board. Kerf is {plan.kerf_mm} mm between cuts. Lengths are the millimetres in the input.</p>
   <nav class="jumps no-print">
     <a href="#yard">Lumber list</a>
     <a href="#inputs">Inputs</a>
     <a href="#cuts">Cut plan</a>
   </nav>
-  <div class="actions no-print">
-    <button type="button" id="print-btn">Print</button>
-    <button type="button" id="copy-btn" class="ghost">Copy lumber list</button>
-  </div>
 </header>
 
 <dl class="stats">
@@ -893,25 +956,24 @@ def render_html(plan: Plan) -> str:
   {missing_html}
   <div class="keep">
   <h3>Stock balance</h3>
-  <table>
-    <thead><tr><th>Length</th><th class="num">On hand</th><th class="num">Pull</th><th class="num">Leave</th></tr></thead>
-    <tbody>{''.join(balance_rows)}</tbody>
-  </table>
+  <ul class="rows">{''.join(balance_items)}</ul>
   </div>
-  <h3 class="no-print">Plain text</h3>
-  <pre id="lumber-text" class="plain no-print">{_esc(lumber_text)}</pre>
+  <details class="plain-wrap no-print">
+    <summary>Plain text</summary>
+    <pre id="lumber-text" class="plain">{_esc(lumber_text)}</pre>
+  </details>
 </section>
 
 <section id="inputs">
   <h2>Check the input</h2>
   <h3>Available stock</h3>
   <p class="note">{len(plan.available_rows)} rows, {avail_n} boards, as entered. Rolled up:</p>
-  {_count_table(plan.on_hand_counts(), colours)}
-  {_input_table(plan.available_rows)}
+  {_count_list(plan.on_hand_counts(), colours)}
+  {_input_list(plan.available_rows)}
   <h3>Project pieces</h3>
   <p class="note">{len(plan.desired_rows)} rows, {desired_n} pieces, as entered. Colours match the cut plan. Rolled up:</p>
-  {_count_table(plan.project_counts(), colours, placed)}
-  {_input_table(plan.desired_rows)}
+  {_count_list(plan.project_counts(), colours, placed)}
+  {_input_list(plan.desired_rows)}
 </section>
 
 <section id="cuts" class="cut-plan">
@@ -928,23 +990,54 @@ def render_html(plan: Plan) -> str:
 
 <p class="footnote">An unused board is left whole. The spreadsheet leftover for that row is stock + kerf (the cutter's starting figure), not an offcut. On a cut board the spreadsheet leftover matches the offcut shown here.</p>
 </main>
+<nav class="dock no-print" aria-label="Share this list">
+  <button type="button" id="share-btn">Share</button>
+  <button type="button" id="copy-btn" class="ghost">Copy</button>
+  <button type="button" id="print-btn" class="ghost">Print</button>
+</nav>
 <script>
+function lumberText() {{
+  return document.getElementById("lumber-text").textContent;
+}}
+function selectLumber(pre) {{
+  if (pre.parentElement && pre.parentElement.open === false) pre.parentElement.open = true;
+  var range = document.createRange();
+  range.selectNodeContents(pre);
+  var sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  pre.scrollIntoView({{behavior: "smooth", block: "center"}});
+}}
 document.getElementById("print-btn").addEventListener("click", function () {{ window.print(); }});
 document.getElementById("copy-btn").addEventListener("click", async function () {{
   var button = this;
   var pre = document.getElementById("lumber-text");
-  var text = pre.textContent;
+  try {{
+    await navigator.clipboard.writeText(lumberText());
+    button.textContent = "Copied";
+  }} catch (err) {{
+    selectLumber(pre);
+    button.textContent = "Selected";
+  }}
+}});
+document.getElementById("share-btn").addEventListener("click", async function () {{
+  var button = this;
+  var text = lumberText();
+  if (navigator.share) {{
+    try {{
+      await navigator.share({{title: "Planker lumber list", text: text}});
+      button.textContent = "Shared";
+      return;
+    }} catch (err) {{
+      if (err && err.name === "AbortError") return;
+    }}
+  }}
   try {{
     await navigator.clipboard.writeText(text);
     button.textContent = "Copied";
   }} catch (err) {{
-    var range = document.createRange();
-    range.selectNodeContents(pre);
-    var sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-    pre.scrollIntoView({{behavior: "smooth", block: "center"}});
-    button.textContent = "Selected — press copy";
+    selectLumber(document.getElementById("lumber-text"));
+    button.textContent = "Selected";
   }}
 }});
 </script>

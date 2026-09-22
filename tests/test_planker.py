@@ -114,6 +114,9 @@ class SampleJobTests(unittest.TestCase):
         self.assertIn("Project: 62 pieces, 62,276 mm", page)
         self.assertIn("5 rows, 15 boards", page)
         self.assertIn("25 rows, 62 pieces", page)
+        self.assertIn('viewport-fit=cover', page)
+        self.assertIn('id="share-btn"', page)
+        self.assertIn('class="dock no-print"', page)
         self.assertNotIn("does not choose a board to buy", page)
 
 
