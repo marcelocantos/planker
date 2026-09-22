@@ -11,8 +11,8 @@ counts and lengths are the real bill of materials.
 ## On a phone or iPad
 
 The cut plan is one self-contained HTML file. It works offline in Safari
-or Chrome. Nothing to install, and nothing to type at the yard: the
-lengths come from the JSON you already have.
+or Chrome. Nothing to install. The sample job is already filled in, so
+at the yard you only tick the boards you pull.
 
 ```bash
 python3 planker.py --html docs/cut-plan.html input.json
@@ -26,6 +26,14 @@ Get `docs/cut-plan.html` onto the device, then open it:
 - **Android:** copy the file onto the phone and open it in Chrome.
 
 The lumber list is the first screen. Tick a row as you pull that board.
+**Edit stock and pieces** (under the totals) is the same job as
+`input.json`: each row is a count and a length in millimetres. Change a
+number and the list and the cut plan update on the phone. **Add a stock
+length** or **Add a piece length** starts a blank row — type the real
+length, don’t leave a guess. **Restore sample job** puts `input.json`
+back. Edits stay on that device (browser storage) until you restore or
+clear the site data.
+
 The bar at the bottom is sized for a thumb:
 
 - **Share** sends the plain-text list (Messages, Mail, WhatsApp, AirDrop).
@@ -41,7 +49,7 @@ The page shows:
 
 - boards to pull, boards on hand that this plan does not cut, and any
   desired piece that did not fit (those are piece lengths, not a board to order)
-- available stock and project pieces, as entered, in large rows
+- stock and pieces you can edit on the page, then the same numbers in the list and the bars
 - each board drawn to scale, with kerf, offcut, and the arithmetic that
   adds back to the stock length
 

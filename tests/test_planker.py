@@ -23,6 +23,23 @@ def _load(name: str) -> dict:
     return json.loads((ROOT / name).read_text(encoding="utf-8"))
 
 
+def _js_plan(job: dict) -> dict:
+    proc = subprocess.run(
+        ["node", str(ROOT / "tests/js_plan.js")],
+        input=json.dumps(
+            {
+                "kerf": job["kerf"],
+                "available": job["available"],
+                "desired": job["desired"],
+            }
+        ),
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    return json.loads(proc.stdout)
+
+
 class SampleJobTests(unittest.TestCase):
     def setUp(self):
         self.data = _load("input.json")
@@ -117,7 +134,12 @@ class SampleJobTests(unittest.TestCase):
         self.assertIn('viewport-fit=cover', page)
         self.assertIn('id="share-btn"', page)
         self.assertIn('class="dock no-print"', page)
-        self.assertNotIn("does not choose a board to buy", page)
+        self.assertIn('id="add-stock"', page)
+        self.assertIn('id="restore-sample"', page)
+        self.assertIn("planker-edit-v1", page)
+        self.assertNotIn("__SAMPLE_JOB__", page)
+        visible, _, _ = page.partition("<script>")
+        self.assertNotIn("does not choose a board to buy", visible)
 
 
 class SyntheticTests(unittest.TestCase):
@@ -147,6 +169,31 @@ class SyntheticTests(unittest.TestCase):
         self.assertEqual(no_kerf.unallocated, ())
         self.assertEqual([board.cuts for board in no_kerf.boards], [(500, 500)])
         self.assertEqual(no_kerf.boards[0].physical_leftover_mm(0), 0)
+
+    def test_browser_cutter_matches_python(self):
+        cases = [
+            {**_load("input.json"), "kerf": planker.KERF_MM},
+            {**_load("tests/fixtures/synthetic_shortfall.json"), "kerf": planker.KERF_MM},
+            {"available": [[1, 1000]], "desired": [[2, 500]], "kerf": 3},
+            {"available": [[1, 1000]], "desired": [[2, 500]], "kerf": 0},
+        ]
+        for data in cases:
+            with self.subTest(kerf=data["kerf"], available=data["available"]):
+                plan = planker.build_plan(data, data["kerf"])
+                got = _js_plan(data)
+                self.assertEqual(
+                    got["boards"],
+                    [
+                        [board.stock_mm, list(board.cuts), board.tsv_leftover_mm]
+                        for board in plan.boards
+                    ],
+                )
+                self.assertEqual(got["unallocated"], list(plan.unallocated))
+                self.assertEqual(got["lumber"], planker.render_lumber_text(plan))
+        sample = _js_plan(cases[0])
+        lengths = [length for length, _ in planker.build_plan(cases[0]).project_counts()]
+        self.assertEqual(sample["offcut270"], planker.describe_offcut(270, lengths))
+        self.assertEqual(sample["offcut11"], planker.describe_offcut(11, lengths))
 
     def test_html_flag_writes_a_file(self):
         with tempfile.TemporaryDirectory() as tmp:

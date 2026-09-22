@@ -18,6 +18,7 @@ import argparse
 import html
 import json
 import sys
+from pathlib import Path
 from collections import Counter
 from dataclasses import dataclass
 from typing import Iterable, TextIO
@@ -445,6 +446,22 @@ def _count_list(
     return f"<ul class='rows'>{''.join(items)}</ul>"
 
 
+def _edit_rows(rows: tuple[tuple[int, int], ...]) -> str:
+    """One large count/length pair per line. Values are the job's own numbers."""
+    parts = []
+    for count, length in rows:
+        parts.append(
+            '<div class="edit-row">'
+            '<label>Count <input inputmode="numeric" enterkeyhint="done" '
+            f'autocomplete="off" min="1" step="1" value="{int(count)}"></label>'
+            '<label>Length mm <input inputmode="numeric" enterkeyhint="done" '
+            f'autocomplete="off" min="1" step="1" value="{int(length)}"></label>'
+            '<button type="button" class="remove ghost">Remove</button>'
+            "</div>"
+        )
+    return "".join(parts)
+
+
 def _input_list(rows: tuple[tuple[int, int], ...]) -> str:
     items = []
     for index, (count, length) in enumerate(rows, start=1):
@@ -691,6 +708,69 @@ b.miss { color: var(--stamp); }
   font-weight: 700;
   cursor: pointer;
 }
+#edit { margin-top: 8px; }
+#edit summary {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-family: Palatino, "Palatino Linotype", Georgia, serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+.edit-row {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) auto;
+  gap: 8px;
+  align-items: end;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+.edit-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.edit-row input {
+  font: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  width: 100%;
+  background: #fff;
+  color: var(--ink);
+}
+.edit-row .remove { min-width: 48px; padding: 10px 12px; }
+.add-row { width: 100%; margin: 8px 0 16px; }
+.kerf-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  min-height: 48px;
+  margin: 8px 0 12px;
+}
+.kerf-field input {
+  font: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  width: 4.5em;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: #fff;
+}
+#restore-sample { width: 100%; }
 pre.plain {
   background: #fff;
   border: 1px solid var(--line);
@@ -901,17 +981,19 @@ def render_html(plan: Plan) -> str:
     )
     pull_mm = sum(board.stock_mm for board in plan.boards if board.used)
     leave_mm = sum(board.stock_mm for board in plan.boards if not board.used)
-    pull_total = (
-        f"<p class='total'>{pull_n} boards · {_esc(mm_text(pull_mm))} · {_esc(metres(pull_mm))}</p>"
+    pull_total_text = (
+        f"{pull_n} boards · {_esc(mm_text(pull_mm))} · {_esc(metres(pull_mm))}"
         if pull_n
         else ""
     )
+    pull_total = f"<p class='total'>{pull_total_text}</p>" if pull_total_text else ""
     leave_total = (
         f"<p class='total'>{leave_n} boards · {_esc(mm_text(leave_mm))} · {_esc(metres(leave_mm))}</p>"
         if leave_n
         else ""
     )
     lumber_text = render_lumber_text(plan)
+    editor_script = _editor_script(plan)
     avail_n = sum(count for count, _ in plan.available_rows)
     desired_n = sum(count for count, _ in plan.desired_rows)
 
@@ -929,34 +1011,52 @@ def render_html(plan: Plan) -> str:
 <header class="top">
   <p class="kicker">Planker</p>
   <h1>Cut plan and lumber list</h1>
-  <p class="lede">Open this page on your phone at the yard. Tick a row as you pull that board. Kerf is {plan.kerf_mm} mm between cuts. Lengths are the millimetres in the input.</p>
+  <p class="lede">Open this page on your phone at the yard. Tick a row as you pull that board. Edit stock and pieces when this job is different. Kerf is {plan.kerf_mm} mm between cuts.</p>
   <nav class="jumps no-print">
+    <a href="#edit">Edit</a>
     <a href="#yard">Lumber list</a>
-    <a href="#inputs">Inputs</a>
     <a href="#cuts">Cut plan</a>
   </nav>
 </header>
 
-<dl class="stats">
+<dl class="stats" id="stats">
   <div><dt>Pull</dt><dd>{pull_n} <small>boards</small></dd></div>
   <div><dt>Leave</dt><dd>{leave_n} <small>boards</small></dd></div>
   <div><dt>Placed</dt><dd>{placed_n} <small>pieces</small></dd></div>
   <div class="{missing_class}"><dt>Not placed</dt><dd>{missing_n} <small>pieces</small></dd></div>
 </dl>
-<p class="note">On hand: {len(plan.boards)} boards, {_esc(mm_text(on_hand_mm))} ({_esc(metres(on_hand_mm))}). Project: {desired_n} pieces, {_esc(mm_text(desired_mm))} ({_esc(metres(desired_mm))}). Offcut on pulled boards: {_esc(mm_text(offcut_mm))}. Saw kerf: {_esc(mm_text(kerf_mm_total))}.</p>
+<p class="note" id="summary-note">On hand: {len(plan.boards)} boards, {_esc(mm_text(on_hand_mm))} ({_esc(metres(on_hand_mm))}). Project: {desired_n} pieces, {_esc(mm_text(desired_mm))} ({_esc(metres(desired_mm))}). Offcut on pulled boards: {_esc(mm_text(offcut_mm))}. Saw kerf: {_esc(mm_text(kerf_mm_total))}.</p>
+
+<details id="edit" class="no-print">
+  <summary>Edit stock and pieces</summary>
+  <p class="note" id="edit-note">{len(plan.available_rows)} rows, {avail_n} boards on hand. {len(plan.desired_rows)} rows, {desired_n} pieces to cut. Change a count or a length and the list updates. Add a row only when you have a real length to enter.</p>
+  <h3>Available stock</h3>
+  <div id="stock-rows">{_edit_rows(plan.available_rows)}</div>
+  <button type="button" class="add-row" id="add-stock">Add a stock length</button>
+  <h3>Pieces to cut</h3>
+  <div id="piece-rows">{_edit_rows(plan.desired_rows)}</div>
+  <button type="button" class="add-row" id="add-piece">Add a piece length</button>
+  <label class="kerf-field">Saw kerf
+    <input id="kerf-input" inputmode="numeric" enterkeyhint="done" min="0" step="1" value="{plan.kerf_mm}">
+    mm
+  </label>
+  <button type="button" class="ghost" id="restore-sample">Restore sample job</button>
+</details>
 
 <section id="yard">
   <h2>Lumber-yard list</h2>
   <p class="note">Tick these off as you pull them. Use the length on the row — a shorter board is not a substitute. Counts are boards this plan cuts, taken from <code>available</code>.</p>
   <h3>Pull</h3>
-  <ul class="pull">{''.join(pull_items)}</ul>
-  {pull_total}
+  <ul class="pull" id="pull-list">{''.join(pull_items)}</ul>
+  <p class="total" id="pull-total">{pull_total_text}</p>
+  <div id="leave-block">
   <h3>Leave on the rack</h3>
   {('<ul class="leave">' + ''.join(leave_items) + '</ul>' + leave_total) if leave_items else '<p class="note">Every available board is cut in this plan.</p>'}
-  {missing_html}
+  </div>
+  <div id="missing-block">{missing_html}</div>
   <div class="keep">
   <h3>Stock balance</h3>
-  <ul class="rows">{''.join(balance_items)}</ul>
+  <ul class="rows" id="balance-list">{''.join(balance_items)}</ul>
   </div>
   <details class="plain-wrap no-print">
     <summary>Plain text</summary>
@@ -964,28 +1064,18 @@ def render_html(plan: Plan) -> str:
   </details>
 </section>
 
-<section id="inputs">
-  <h2>Check the input</h2>
-  <h3>Available stock</h3>
-  <p class="note">{len(plan.available_rows)} rows, {avail_n} boards, as entered. Rolled up:</p>
-  {_count_list(plan.on_hand_counts(), colours)}
-  {_input_list(plan.available_rows)}
-  <h3>Project pieces</h3>
-  <p class="note">{len(plan.desired_rows)} rows, {desired_n} pieces, as entered. Colours match the cut plan. Rolled up:</p>
-  {_count_list(plan.project_counts(), colours, placed)}
-  {_input_list(plan.desired_rows)}
-</section>
-
 <section id="cuts" class="cut-plan">
   <h2>Cut plan</h2>
-  <p class="note">Each bar is one board, to scale with the ruler (millimetres). Board numbers follow the TSV rows. Left to right is the cut order. A short offcut is a thin sliver; the number at the right is its length. The dark line is the {plan.kerf_mm} mm kerf, drawn at least a hairline so it stays visible. “Too short” means the offcut is shorter than every piece on this job.</p>
-  <ul class="legend">
+  <p class="note" id="cut-note">Each bar is one board, to scale with the ruler (millimetres). Board numbers follow the TSV rows. Left to right is the cut order. A short offcut is a thin sliver; the number at the right is its length. The dark line is the {plan.kerf_mm} mm kerf, drawn at least a hairline so it stays visible. “Too short” means the offcut is shorter than every piece on this job.</p>
+  <ul class="legend" id="cut-legend">
     <li><i class="key kerf"></i> Kerf {plan.kerf_mm} mm</li>
     <li><i class="key off"></i> Offcut</li>
     <li><i class="key idle"></i> Board not cut</li>
   </ul>
+  <div id="cut-body">
   {ruler_row}
   {''.join(groups)}
+  </div>
 </section>
 
 <p class="footnote">An unused board is left whole. The spreadsheet leftover for that row is stock + kerf (the cutter's starting figure), not an offcut. On a cut board the spreadsheet leftover matches the offcut shown here.</p>
@@ -1041,9 +1131,22 @@ document.getElementById("share-btn").addEventListener("click", async function ()
   }}
 }});
 </script>
-</body>
+{editor_script}</body>
 </html>
 """
+
+
+def _editor_script(plan: Plan) -> str:
+    """Inline the editor so the HTML file works offline, including in Safari."""
+    sample = {
+        "kerf": plan.kerf_mm,
+        "available": [[count, length] for count, length in plan.available_rows],
+        "desired": [[count, length] for count, length in plan.desired_rows],
+    }
+    source = Path(__file__).with_name("planker_editor.js").read_text(encoding="utf-8")
+    if "__SAMPLE_JOB__" not in source:
+        raise RuntimeError("planker_editor.js is missing the __SAMPLE_JOB__ placeholder")
+    return "<script>\n" + source.replace("__SAMPLE_JOB__", json.dumps(sample)) + "\n</script>\n"
 
 
 def _load(path: str | None) -> dict:
