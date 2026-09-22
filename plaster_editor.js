@@ -356,6 +356,10 @@ function mmSize(w, h) {
   return commas(w) + " × " + commas(h) + " mm";
 }
 
+function countLabel(count, one, many) {
+  return count + " <small>" + (count === 1 ? one : many) + "</small>";
+}
+
 function areaLabel(mm2) {
   return areaM2(mm2).replace(" m2", " m²");
 }
@@ -456,7 +460,7 @@ function boardSvg(sheet, colours) {
       x2 = band.x + band.w;
     }
     body += '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 +
-      '" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/>';
+      '" stroke="#1a120c" stroke-width="4" vector-effect="non-scaling-stroke"/>';
   });
   sheet.placements.forEach(function (panel) {
     var lines = [panel.w + " × " + panel.h];
@@ -486,8 +490,9 @@ function chipsHtml(sheet, colours) {
 }
 
 function fig(w, maxW, inner) {
-  var pct = (100 * w / maxW).toFixed(4);
-  return '<div class="fig" style="width:' + pct + '%">' + inner + "</div>";
+  var pct = (100 * w / maxW);
+  var wide = pct > 100.05 ? " wide" : "";
+  return '<div class="fig' + wide + '" style="width:' + pct.toFixed(4) + '%">' + inner + "</div>";
 }
 
 function maxSheetWidth(plan) {
@@ -529,13 +534,16 @@ function legendHtml(plan, colours) {
 
 function unplacedHtml(plan, colours, maxW) {
   if (!plan.unplaced.length) return "";
-  var html = "<div class='length-group'><h3>Did not fit</h3><p class='note'>Drawn at the same scale as the sheets. Nothing was added to the pull list for these.</p>";
+  var html = "<div class='length-group unplaced-draw'><h3>Did not fit</h3><p class='note'>Drawn at the same scale as the sheets. Nothing was added to the pull list for these.</p>";
   plan.unplaced.forEach(function (panel) {
     var tried = panel.grain
       ? "Face direction locked, so " + panel.h + " × " + panel.w + " was not tried."
       : (panel.w === panel.h
         ? "Does not fit a stock sheet."
         : "Tried " + panel.w + " × " + panel.h + " and " + panel.h + " × " + panel.w + ". Neither fits a stock sheet.");
+    if (panel.w > maxW) {
+      tried += " Drawn wider than the widest stock sheet (" + commas(maxW) + " mm).";
+    }
     var fake = {
       index: "x",
       w: panel.w,
@@ -600,11 +608,11 @@ function paint(job) {
   var stats = document.getElementById("stats");
   if (stats) {
     stats.innerHTML =
-      "<div><dt>Pull</dt><dd>" + pullN + " <small>sheets</small></dd></div>" +
-      "<div><dt>Leave</dt><dd>" + leaveN + " <small>sheets</small></dd></div>" +
-      "<div class='ok'><dt>Placed</dt><dd>" + placedN + " <small>panels</small></dd></div>" +
+      "<div><dt>Pull</dt><dd>" + countLabel(pullN, "sheet", "sheets") + "</dd></div>" +
+      "<div><dt>Leave</dt><dd>" + countLabel(leaveN, "sheet", "sheets") + "</dd></div>" +
+      "<div class='ok'><dt>Placed</dt><dd>" + countLabel(placedN, "panel", "panels") + "</dd></div>" +
       "<div class='" + (plan.unplaced.length ? "bad" : "ok") + "'><dt>Not placed</dt><dd>" +
-      plan.unplaced.length + " <small>panels</small></dd></div>";
+      countLabel(plan.unplaced.length, "panel", "panels") + "</dd></div>";
   }
   var summary = document.getElementById("summary-note");
   if (summary) {
