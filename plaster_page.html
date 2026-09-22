@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f3ecdf">
+<meta name="color-scheme" content="light">
+<title>Plasterboard cut plan</title>
+<style>
+:root {
+  --paper: #f3ecdf;
+  --sheet: #fffaf3;
+  --ink: #1f1a14;
+  --muted: #6d6256;
+  --line: #eadfce;
+  --rule: #d9cbb6;
+  --stamp: #8c2f1b;
+  --ok: #1f7a4d;
+  --shadow: 0 16px 40px rgba(60, 40, 20, 0.08);
+  --dock: 76px;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; color-scheme: light; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  touch-action: manipulation;
+}
+.sheet {
+  max-width: 720px;
+  margin: 0 auto;
+  background: var(--sheet);
+  padding: 16px 16px calc(var(--dock) + env(safe-area-inset-bottom));
+}
+header.top { border-top: 8px solid var(--stamp); padding-top: 14px; }
+.kicker {
+  margin: 0;
+  color: var(--stamp);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+h1 {
+  margin: 4px 0 0;
+  font-family: Palatino, "Palatino Linotype", "Iowan Old Style", Georgia, serif;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+.lede { margin: 8px 0 0; color: var(--muted); font-size: 17px; }
+.banner {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  background: #f8efe4;
+  border: 2px solid var(--stamp);
+  font-weight: 700;
+}
+nav.jumps { display: flex; gap: 4px 18px; flex-wrap: wrap; margin: 12px 0 0; }
+nav.jumps a {
+  color: var(--stamp);
+  font-size: 17px;
+  font-weight: 700;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+h2 {
+  margin: 28px 0 8px;
+  font-family: Palatino, "Palatino Linotype", Georgia, serif;
+  font-size: 28px;
+  line-height: 1.15;
+  break-after: avoid;
+}
+h3 { margin: 22px 0 6px; font-size: 18px; break-after: avoid; }
+p.note, .footnote { color: var(--muted); font-size: 16px; }
+.error {
+  margin: 12px 0;
+  padding: 10px 12px;
+  background: #fff;
+  border: 2px solid var(--stamp);
+  color: var(--stamp);
+  font-weight: 700;
+}
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 16px 0 8px;
+}
+.stats div {
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 10px 12px 12px;
+  min-height: 72px;
+}
+.stats dt {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.stats dd { margin: 2px 0 0; font-size: 28px; font-variant-numeric: tabular-nums; font-weight: 700; }
+.stats dd small { font-size: 15px; font-weight: 600; color: var(--muted); margin-left: 4px; }
+.stats .bad dd { color: var(--stamp); }
+.stats .ok dd { color: var(--ok); }
+.pull, .leave { list-style: none; margin: 0; padding: 0; }
+.pull { border-left: 4px solid var(--stamp); padding-left: 12px; }
+.leave { border-left: 4px solid #c4b39a; padding-left: 12px; }
+.total { margin: 8px 0 0; font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; }
+.pull li, .leave li { border-top: 1px solid var(--line); }
+.pull label, .leave li {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  align-items: center;
+  column-gap: 8px;
+  min-height: 84px;
+  padding: 12px 0;
+}
+.leave li { grid-template-columns: 1fr; min-height: 76px; }
+.pull input {
+  grid-row: 1 / span 3;
+  width: 28px;
+  height: 28px;
+  justify-self: center;
+  accent-color: var(--stamp);
+}
+.count {
+  font-size: 40px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.mm { font-size: 22px; font-variant-numeric: tabular-nums; font-weight: 700; }
+.m { color: var(--muted); font-size: 16px; font-variant-numeric: tabular-nums; }
+.swatch, .chip i, .key {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 1px solid rgba(31, 26, 20, 0.35);
+  vertical-align: -3px;
+}
+.swatch.mix {
+  width: 42px;
+  background: linear-gradient(90deg, #e0b15a, #7aa2c4 50%, #c47a8a);
+}
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; list-style: none; padding: 0; margin: 8px 0 12px; }
+.legend li { display: flex; align-items: center; gap: 8px; font-size: 16px; min-height: 32px; }
+.key.off {
+  background: repeating-linear-gradient(45deg, #f4e7d4, #f4e7d4 3px, #c4a484 3px, #c4a484 5px);
+}
+.key.kerf { background: #1f1a14; }
+.fig { max-width: 100%; }
+.fig.wide { max-width: none; }
+.unplaced-draw { overflow-x: auto; max-width: 100%; }
+.board-card, article.board { padding: 8px 0 16px; border-top: 1px solid var(--line); break-inside: avoid; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+.idx { color: var(--muted); font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.stock { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.cuts-n { color: var(--muted); font-size: 16px; }
+svg.board { display: block; width: 100%; height: auto; background: #f4e7d4; }
+.chips { margin: 8px 0 0; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  margin: 0 8px 8px 0;
+  padding: 6px 10px 6px 8px;
+  background: #fff;
+  border: 1px solid var(--line);
+  font-variant-numeric: tabular-nums;
+  font-size: 16px;
+}
+.chip.off { color: var(--muted); }
+.chip { cursor: pointer; }
+.chip.on { outline: 3px solid var(--stamp); outline-offset: 1px; }
+.chip.dim { opacity: 0.4; }
+svg.board .panel.on rect:first-of-type { stroke: var(--stamp); stroke-width: 16px; }
+svg.board .panel.dim { opacity: 0.35; }
+.room-view {
+  height: 420px;
+  perspective: 900px;
+  touch-action: none;
+  overflow: hidden;
+  background: linear-gradient(#efe6d6, #d9cbb8);
+  border: 1px solid var(--rule);
+  cursor: grab;
+}
+.room-stage {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  transform-style: preserve-3d;
+}
+.room-rig {
+  width: 0;
+  height: 0;
+  position: relative;
+  transform-style: preserve-3d;
+}
+.room-panel, .room-floor, .room-opening {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0 0;
+  backface-visibility: visible;
+  box-shadow: inset 0 0 0 14px rgba(31, 26, 20, 0.28);
+}
+.room-opening {
+  background: #120e0b;
+  box-shadow: 0 0 0 120px #3a291f;
+}
+.room-panel.on { box-shadow: inset 0 0 0 70px var(--stamp); }
+.room-panel.dim { opacity: 0.22; }
+.room-panel.loose { opacity: 0.5; }
+.room-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 8px;
+}
+.room-bar .note { margin: 0; flex: 1; }
+.room-bar button { min-height: 44px; flex: 0 0 auto; }
+.check { margin: 0; color: var(--muted); font-size: 15px; font-variant-numeric: tabular-nums; }
+.plain-wrap summary, #edit summary {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 700;
+}
+#edit summary {
+  font-family: Palatino, "Palatino Linotype", Georgia, serif;
+  font-size: 28px;
+  line-height: 1.15;
+}
+.edit-row {
+  display: grid;
+  grid-template-columns: 3.6rem minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: end;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+.edit-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  min-width: 0;
+}
+.edit-row input[type="checkbox"] { text-transform: none; }
+.edit-row input {
+  font: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  width: 100%;
+  background: #fff;
+  color: var(--ink);
+}
+.lock {
+  grid-column: 1 / -1;
+  flex-direction: row !important;
+  align-items: center;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  color: var(--ink) !important;
+  min-height: 44px;
+  gap: 10px !important;
+}
+.piece-name {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+}
+.lock input {
+  width: 24px !important;
+  height: 24px;
+  min-height: 24px !important;
+  padding: 0 !important;
+  accent-color: var(--stamp);
+}
+.edit-row .remove { min-width: 48px; padding: 10px 8px; }
+.add-row, #restore-sample { width: 100%; margin: 8px 0 16px; }
+.kerf-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  min-height: 48px;
+  margin: 8px 0 4px;
+}
+.kerf-field input {
+  font: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  width: 4.5em;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: #fff;
+}
+pre.plain {
+  background: #fff;
+  border: 1px solid var(--line);
+  padding: 12px 14px;
+  overflow: auto;
+  white-space: pre-wrap;
+  font: 15px/1.45 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+.length-group { margin-top: 8px; }
+.length-group h3 { margin-bottom: 0; }
+button {
+  background: var(--ink);
+  color: var(--sheet);
+  border: 0;
+  border-radius: 8px;
+  min-height: 48px;
+  padding: 10px 12px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+button.ghost { background: #fff; color: var(--ink); border: 1px solid var(--rule); }
+:focus-visible { outline: 3px solid var(--stamp); outline-offset: 2px; }
+.dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  background: rgba(255, 250, 243, 0.97);
+  border-top: 1px solid var(--rule);
+}
+.dock button { flex: 1; font-size: 17px; }
+code { font: 0.92em ui-monospace, Menlo, Consolas, monospace; }
+@media (min-width: 680px) {
+  .sheet {
+    margin: 20px auto 32px;
+    padding: 28px 28px calc(var(--dock) + 24px);
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow);
+  }
+  h1 { font-size: 40px; }
+  .stats { grid-template-columns: repeat(4, 1fr); }
+  .dock {
+    left: 50%;
+    right: auto;
+    width: min(720px, calc(100% - 32px));
+    transform: translateX(-50%);
+    border: 1px solid var(--rule);
+    border-bottom: 0;
+    border-radius: 12px 12px 0 0;
+  }
+}
+@page { size: A4; margin: 12mm; }
+@media print {
+  body { background: #fff; }
+  .sheet { margin: 0; max-width: none; border: 0; box-shadow: none; padding: 0; }
+  .no-print, .dock { display: none !important; }
+  svg.board { break-inside: avoid; }
+  a { color: inherit; text-decoration: none; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+<main class="sheet">
+<header class="top">
+  <p class="kicker" id="kicker">Example · fictional</p>
+  <h1>Plasterboard cut plan</h1>
+  <p class="lede" id="story">__STORY__</p>
+  <p class="banner" id="banner">EXAMPLE / FICTIONAL — not a real job. This spare room is made up.</p>
+  <nav class="jumps no-print">
+    <a href="#pull">Sheets to pull</a>
+    <a href="#room">Room</a>
+    <a href="#plan">Cut plan</a>
+    <a href="#edit">Edit sizes</a>
+  </nav>
+</header>
+<noscript><p class="banner">This page lays the sheets out with JavaScript. It stays on the phone — nothing is uploaded.</p></noscript>
+<p class="error" id="error" hidden></p>
+<dl class="stats" id="stats"></dl>
+<p class="note" id="summary-note"></p>
+
+<h2 id="pull">Sheets to pull</h2>
+<p class="note">Tick a row as you take that size off the rack. Counts come from the stock list on this page.</p>
+<ul class="pull" id="pull-list"></ul>
+<p class="total" id="pull-total"></p>
+<div id="leave-block"></div>
+<div id="missing-block"></div>
+
+<section class="room-block no-print" id="room">
+  <h2>Room preview</h2>
+  <p class="note" id="room-note">Fictional room. The dark framed holes are the door and two windows. Skinny panels are the sills, lintels, and side fills around them. Drag to turn, pinch to zoom. Tap a panel to mark it here and on the sheets.</p>
+  <div class="room-view" id="room-view">
+    <div class="room-stage"><div class="room-rig" id="room-rig"></div></div>
+  </div>
+  <div class="room-bar">
+    <button type="button" class="ghost" id="room-reset">Reset view</button>
+    <p class="note" id="piece-info">Tap a coloured panel. The same colour is on the sheet and in the room.</p>
+  </div>
+</section>
+
+<details id="edit" class="no-print">
+  <summary>Edit stock and panels</summary>
+  <p class="note" id="edit-note"></p>
+  <h3>Stock sheets</h3>
+  <div id="stock-rows"></div>
+  <button type="button" class="add-row" id="add-stock">Add a stock sheet</button>
+  <h3>Panels to cut</h3>
+  <p class="note">Width is across the sheet and height runs down the drawing, in millimetres. Face direction locked keeps that orientation. Otherwise the planner may turn the panel 90°.</p>
+  <div id="panel-rows"></div>
+  <button type="button" class="add-row" id="add-panel">Add a panel</button>
+  <label class="kerf-field">Saw kerf
+    <input id="kerf-input" inputmode="numeric" enterkeyhint="done" min="0" step="1" value="3">
+    mm
+  </label>
+  <p class="note">Named setting <code>kerf_mm</code>. Default 3 mm, about a circular-saw or panel-saw blade. Use 0 for score-and-snap, which does not remove a strip.</p>
+  <button type="button" class="ghost" id="restore-sample">Restore example job</button>
+</details>
+
+<h2 id="plan">Cut plan</h2>
+<p class="note" id="cut-note"></p>
+<ul class="legend" id="cut-legend"></ul>
+<div id="cut-body"></div>
+
+<h2>Plain text</h2>
+<details class="plain-wrap" open>
+  <summary>List to share</summary>
+  <pre class="plain" id="lumber-text"></pre>
+</details>
+<p class="footnote">Packing is guillotine best-area fit with a shorter-leftover split. Panels go largest longer-side first, into the free rectangle whose leftover area is smallest. Each placement is one through-cut of that rectangle: if the leftover is narrower than it is short, the cut runs the full height; otherwise it runs the full width. The panel may be turned 90° unless face direction is locked. Stock sheets are not turned. This is not an exact optimum. Saw kerf (<code>kerf_mm</code>) defaults to 3 mm and is taken out of each through-cut. A leftover thinner than the kerf is not used. Set kerf to 0 for score-and-snap.</p>
+<p class="footnote">Open this file in Safari or Chrome. Nothing to install, and it works offline. On iPhone or iPad: AirDrop the file, or save it in Files, then open it in Safari. The timber cutter (<code>planker.py</code>) is a separate 1D tool.</p>
+</main>
+<nav class="dock no-print" aria-label="Share this list">
+  <button type="button" id="share-btn">Share</button>
+  <button type="button" id="copy-btn" class="ghost">Copy</button>
+  <button type="button" id="print-btn" class="ghost">Print</button>
+</nav>
+<script>
+__EDITOR_JS__
+</script>
+<script>
+function listText() {
+  return document.getElementById("lumber-text").textContent;
+}
+function selectList(pre) {
+  if (pre.parentElement && pre.parentElement.open === false) pre.parentElement.open = true;
+  var range = document.createRange();
+  range.selectNodeContents(pre);
+  var sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  pre.scrollIntoView({behavior: "smooth", block: "center"});
+}
+function flash(button, label) {
+  var previous = button.getAttribute("data-label") || button.textContent;
+  button.setAttribute("data-label", previous);
+  button.textContent = label;
+  setTimeout(function () { button.textContent = button.getAttribute("data-label"); }, 1600);
+}
+document.getElementById("print-btn").addEventListener("click", function () { window.print(); });
+document.getElementById("copy-btn").addEventListener("click", async function () {
+  var button = this;
+  var pre = document.getElementById("lumber-text");
+  try {
+    await navigator.clipboard.writeText(listText());
+    flash(button, "Copied");
+  } catch (err) {
+    selectList(pre);
+    flash(button, "Selected");
+  }
+});
+document.getElementById("share-btn").addEventListener("click", async function () {
+  var button = this;
+  var text = listText();
+  if (navigator.share) {
+    try {
+      await navigator.share({title: "Planker plasterboard list", text: text});
+      flash(button, "Shared");
+      return;
+    } catch (err) {
+      if (err && err.name === "AbortError") return;
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    flash(button, "Copied");
+  } catch (err) {
+    selectList(document.getElementById("lumber-text"));
+    flash(button, "Selected");
+  }
+});
+</script>
+</body>
+</html>
