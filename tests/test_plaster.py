@@ -208,12 +208,22 @@ class ExampleJobTests(unittest.TestCase):
         self.assertIn("FICTIONAL", self.job["title"])
         self.assertIn("fictional", self.job["story"].lower())
         self.assertIn("not a client job", self.job["story"])
+        self.assertIn("two windows", self.job["story"].lower())
+        self.assertIn("Skinny panels", self.job["story"])
         self.assertIn("Not a real bill of materials", self.job["note"])
         self.assertNotIn("5400", raw)
         self.assertNotIn("input.json", raw)
         self.assertEqual(self.job["kerf_mm"], 3)
         self.assertEqual([(row["w"], row["h"], row["count"]) for row in self.job["available"]], [(1200, 2700, 11), (1200, 2400, 8)])
-        self.assertEqual(len(self.job["desired"]), 38)
+        self.assertEqual(len(self.job["desired"]), 46)
+        openings = self.job["room"]["openings"]
+        self.assertEqual([item["name"] for item in openings], ["Door", "Big window", "Small window"])
+        self.assertNotEqual(openings[1]["w"] * openings[1]["h"], openings[2]["w"] * openings[2]["h"])
+        names = " ".join(row["name"] for row in self.job["desired"])
+        self.assertIn("Lintel", names)
+        self.assertIn("Sill piece", names)
+        self.assertIn("Side fill", names)
+        self.assertTrue(any(row["w"] <= 200 for row in self.job["desired"]))
         for row in self.job["desired"]:
             self.assertEqual(row["count"], 1)
             self.assertTrue(row["face"])
@@ -244,7 +254,7 @@ class ExampleJobTests(unittest.TestCase):
     def test_room_faces_cover_their_area_and_leave_the_openings(self):
         grouped = self._face_rows()
         expected = {
-            "east": 3000 * 2700,
+            "east": 3000 * 2700 - 700 * 800,
             "south": 3600 * 2700 - 820 * 2040,
             "west": 1800 * 2700,
             "robeFront": 1200 * 2700,
@@ -261,6 +271,10 @@ class ExampleJobTests(unittest.TestCase):
             "winRight": 100 * 1100,
             "winSill": 1200 * 100,
             "winHead": 1200 * 100,
+            "win2Left": 100 * 800,
+            "win2Right": 100 * 800,
+            "win2Sill": 700 * 100,
+            "win2Head": 700 * 100,
         }
         self.assertEqual(set(grouped), set(expected))
 
@@ -284,17 +298,18 @@ class ExampleJobTests(unittest.TestCase):
                         f"{face} pieces overlap",
                     )
             self.assertEqual(area, expected[face], face)
-        self.assertFalse(covers(grouped["south"], (2400, 0, 820, 2040)))
-        self.assertFalse(covers(grouped["north"], (1200, 900, 1200, 1100)))
+        self.assertFalse(covers(grouped["south"], (1680, 0, 820, 2040)))
+        self.assertFalse(covers(grouped["north"], (180, 800, 1200, 1100)))
+        self.assertFalse(covers(grouped["east"], (1500, 1100, 700, 800)))
 
     def test_example_pull_leave_and_a_turned_panel(self):
         self.assertEqual(
             plaster._groups_of_sheets(self.plan["sheets"], used=True),
-            [(1200, 2700, 10), (1200, 2400, 7)],
+            [(1200, 2700, 9), (1200, 2400, 8)],
         )
         self.assertEqual(
             plaster._groups_of_sheets(self.plan["sheets"], used=False),
-            [(1200, 2700, 1), (1200, 2400, 1)],
+            [(1200, 2700, 2)],
         )
         placed = [panel for sheet in self.plan["sheets"] for panel in sheet["placements"]]
         self.assertTrue(any(panel["rotated"] for panel in placed))
@@ -304,9 +319,10 @@ class ExampleJobTests(unittest.TestCase):
         text = plaster.render_shop_text(self.plan, self.job)
         self.assertIn("EXAMPLE / FICTIONAL — not a real job", text)
         self.assertIn("not a client job", text)
-        self.assertIn("10 x 1200 x 2700 mm (3.240 m2 each)", text)
-        self.assertIn("7 x 1200 x 2400 mm (2.880 m2 each)", text)
-        self.assertIn("Total: 17 sheets, 52.560 m2", text)
+        self.assertIn("9 x 1200 x 2700 mm (3.240 m2 each)", text)
+        self.assertIn("8 x 1200 x 2400 mm (2.880 m2 each)", text)
+        self.assertIn("Total: 17 sheets, 52.200 m2", text)
+        self.assertIn("Skinny panels", text)
         self.assertIn("DOES NOT FIT\nnone", text)
         self.assertIn("face locked", text)
         self.assertIn("turned (entered", text)
@@ -341,6 +357,9 @@ class PageTests(unittest.TestCase):
         self.assertIn("EXAMPLE / FICTIONAL", html)
         self.assertIn("wardrobe", html)
         self.assertIn("bulkhead", html)
+        self.assertIn("different sizes", html)
+        self.assertIn("Skinny panels", html)
+        self.assertIn("room-opening", html)
         self.assertIn("Room preview", html)
         self.assertIn('id="room-view"', html)
         self.assertIn("guillotine best-area fit", html)

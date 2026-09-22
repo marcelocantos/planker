@@ -40,7 +40,10 @@ The timber command above is unchanged. This planner does not read
 `example-plaster.json` is an **EXAMPLE / FICTIONAL** spare room, not a
 client job and not a real bill of materials. The room is made up: 3.6 m by
 3.0 m and 2.7 m high, with a wardrobe bulk on the west wall, a bulkhead
-along the window wall, one door, and one window. In that fiction the
+along the window wall, one door, and two windows of different sizes:
+a wide one under the bulkhead and a smaller one on the east wall.
+Skinny panels in that list are the sills, lintels, and side fills that
+stop at the openings, plus the narrow reveal strips. In that fiction the
 garage holds 11 sheets of 1200×2700 mm and 8 sheets of 1200×2400 mm.
 Those are typical Australian plasterboard sizes, used only so the drawing
 has familiar proportions.
@@ -68,7 +71,8 @@ stay on that device until you restore.
 The page also draws a **room preview**. Each cut panel has one colour on
 its sheet and the same colour on the wall or ceiling it belongs to. Drag
 to turn the room, pinch to zoom, and tap a panel to mark it in both
-views. The door and the window are openings. This view is part of the
+views. The door and the two windows are dark framed holes, so the
+skinny panels around them have a place to land. This view is part of the
 fiction: it is the made-up spare room, not a measured site.
 
 Saw kerf is the named setting `kerf_mm`. The default is **3 mm**, about a

@@ -601,7 +601,7 @@ function unplacedHtml(plan, colours, maxW) {
 
 var selectedId = null;
 var currentPlan = null;
-var roomViewState = {rx: -34, ry: 38, z: 0.07, px: 0, py: 8};
+var roomViewState = {rx: -60, ry: 130, z: 0.082, px: 0, py: 10};
 var roomPointers = {};
 var roomPinched = false;
 var ROOM_CENTER = {x: 1800, y: 1350, z: 1500};
@@ -617,13 +617,17 @@ var FACE_GEOM = {
   ceiling: {type: "flat", y: 2700, x0: 0, z0: 0, nudge: [0, -18, 0]},
   soffit: {type: "flat", y: 2400, x0: 0, z0: 2500, nudge: [0, -18, 0]},
   bulkhead: {type: "wall", along: "x", x0: 0, z: 2500, y0: 2400, nudge: [0, 0, -18]},
-  doorWestJamb: {type: "wall", along: "z", x: 2400, z0: 0, y0: 0, nudge: [8, 0, 0]},
-  doorEastJamb: {type: "wall", along: "z", x: 3220, z0: 0, y0: 0, nudge: [-8, 0, 0]},
-  doorHead: {type: "flat", y: 2040, x0: 2400, z0: 0, nudge: [0, -8, 0]},
-  winLeft: {type: "wall", along: "z", x: 1200, z0: 2900, y0: 900, nudge: [8, 0, 0]},
-  winRight: {type: "wall", along: "z", x: 2400, z0: 2900, y0: 900, nudge: [-8, 0, 0]},
-  winSill: {type: "flat", y: 900, x0: 1200, z0: 2900, nudge: [0, 8, 0]},
-  winHead: {type: "flat", y: 2000, x0: 1200, z0: 2900, nudge: [0, -8, 0]}
+  doorWestJamb: {type: "wall", along: "z", x: 1680, z0: 0, y0: 0, nudge: [8, 0, 0]},
+  doorEastJamb: {type: "wall", along: "z", x: 2500, z0: 0, y0: 0, nudge: [-8, 0, 0]},
+  doorHead: {type: "flat", y: 2040, x0: 1680, z0: 0, nudge: [0, -8, 0]},
+  winLeft: {type: "wall", along: "z", x: 180, z0: 2900, y0: 800, nudge: [8, 0, 0]},
+  winRight: {type: "wall", along: "z", x: 1380, z0: 2900, y0: 800, nudge: [-8, 0, 0]},
+  winSill: {type: "flat", y: 800, x0: 180, z0: 2900, nudge: [0, 8, 0]},
+  winHead: {type: "flat", y: 1900, x0: 180, z0: 2900, nudge: [0, -8, 0]},
+  win2Left: {type: "wall", along: "x", x0: 3500, z: 1500, y0: 1100, nudge: [0, 0, -8]},
+  win2Right: {type: "wall", along: "x", x0: 3500, z: 2200, y0: 1100, nudge: [0, 0, 8]},
+  win2Sill: {type: "flatZ", x: 3600, y: 1100, z0: 1500, nudge: [-6, 6, 0]},
+  win2Head: {type: "flatZ", x: 3600, y: 1900, z0: 1500, nudge: [-6, -6, 0]}
 };
 
 function cross3(a, b) {
@@ -670,6 +674,10 @@ function piecePose(face, u, v, w, h) {
       axisU = [0, 0, 1];
     }
     axisV = [0, -1, 0];
+  } else if (geom.type === "flatZ") {
+    origin = [geom.x, geom.y, geom.z0 + u];
+    axisU = [0, 0, 1];
+    axisV = [-1, 0, 0];
   } else {
     origin = [geom.x0 + u, geom.y, geom.z0 + v];
     axisU = [1, 0, 0];
@@ -748,23 +756,6 @@ function renderRoom(plan) {
     };
     floor.style.transform = panelMatrix(pose.origin, pose.axisU, pose.axisV);
   }
-  var room = (typeof SAMPLE !== "undefined" && SAMPLE && SAMPLE.room) ? SAMPLE.room : null;
-  if (room && room.openings) {
-    room.openings.forEach(function (opening) {
-      var zFace = opening.face === "north" ? "north" : "south";
-      var pose = piecePose(zFace, opening.u, opening.v, opening.w, opening.h);
-      if (!pose) return;
-      var origin = pose.origin.slice();
-      origin[2] = opening.face === "north" ? 3048 : -48;
-      var hole = document.createElement("div");
-      hole.className = "room-opening";
-      hole.style.width = opening.w + "px";
-      hole.style.height = opening.h + "px";
-      hole.style.background = "#241c16";
-      hole.style.transform = panelMatrix(origin, pose.axisU, pose.axisV);
-      rig.appendChild(hole);
-    });
-  }
   collectRoomPieces(plan).forEach(function (piece) {
     addRoomFace(rig, {
       className: piece.placed ? "room-panel" : "room-panel loose",
@@ -778,6 +769,25 @@ function renderRoom(plan) {
       title: piece.name
     });
   });
+  var room = (typeof SAMPLE !== "undefined" && SAMPLE && SAMPLE.room) ? SAMPLE.room : null;
+  if (room && room.openings) {
+    room.openings.forEach(function (opening) {
+      var geom = FACE_GEOM[opening.face];
+      var pose = piecePose(opening.face, opening.u, opening.v, opening.w, opening.h);
+      if (!pose || !geom || !geom.nudge) return;
+      var origin = pose.origin.slice();
+      origin[0] -= geom.nudge[0] * 4;
+      origin[1] -= geom.nudge[1] * 4;
+      origin[2] -= geom.nudge[2] * 4;
+      var hole = document.createElement("div");
+      hole.className = "room-opening";
+      hole.style.width = opening.w + "px";
+      hole.style.height = opening.h + "px";
+      hole.title = opening.name || "Opening";
+      hole.style.transform = panelMatrix(origin, pose.axisU, pose.axisV);
+      rig.appendChild(hole);
+    });
+  }
   applyRoomView();
 }
 
@@ -945,7 +955,7 @@ function paint(job) {
   if (legend) legend.innerHTML = legendHtml(plan);
   var cutNote = document.getElementById("cut-note");
   if (cutNote) {
-    cutNote.textContent = "Each sheet is to scale with the others. A panel's colour is the same on the sheet and in the room. Tap one to mark it in both. Hatched areas are offcuts. The dark strip is the " +
+    cutNote.textContent = "Skinny panels are the sills, lintels, and side fills that stop at the door and the two windows. Each sheet is to scale with the others. A panel's colour is the same on the sheet and in the room. Tap one to mark it in both. Hatched areas are offcuts. The dark strip is the " +
       job.kerf_mm + " mm saw kerf, drawn with a hairline so a thin blade still shows. A panel marked turned was rotated 90°. Locked panels keep the width and height you entered. Sheet numbers follow the stock list after counts are expanded. A number that is missing here was left on the rack.";
   }
 
@@ -1118,7 +1128,7 @@ function boot() {
   var resetBtn = document.getElementById("room-reset");
   if (resetBtn) {
     resetBtn.addEventListener("click", function () {
-      roomViewState = {rx: -34, ry: 38, z: 0.07, px: 0, py: 8};
+      roomViewState = {rx: -60, ry: 130, z: 0.082, px: 0, py: 10};
       applyRoomView();
     });
   }

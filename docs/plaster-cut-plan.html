@@ -213,7 +213,10 @@ svg.board .panel.dim { opacity: 0.35; }
   backface-visibility: visible;
   box-shadow: inset 0 0 0 14px rgba(31, 26, 20, 0.28);
 }
-.room-opening { box-shadow: inset 0 0 0 22px #6b5344; }
+.room-opening {
+  background: #120e0b;
+  box-shadow: 0 0 0 120px #3a291f;
+}
 .room-panel.on { box-shadow: inset 0 0 0 70px var(--stamp); }
 .room-panel.dim { opacity: 0.22; }
 .room-panel.loose { opacity: 0.5; }
@@ -392,7 +395,7 @@ code { font: 0.92em ui-monospace, Menlo, Consolas, monospace; }
 <header class="top">
   <p class="kicker" id="kicker">Example · fictional</p>
   <h1>Plasterboard cut plan</h1>
-  <p class="lede" id="story">Fictional spare room, 3.6 m by 3.0 m and 2.7 m high. A wardrobe bulk on the west wall, a bulkhead along the window wall, one door and one window. Invented sizes, not a client job. On hand in this fiction: 11 sheets of 1200×2700 mm and 8 of 1200×2400 mm.</p>
+  <p class="lede" id="story">Fictional spare room, 3.6 m by 3.0 m and 2.7 m high. A wardrobe bulk on the west wall and a bulkhead over the window wall. Two windows of different sizes: a wide one under the bulkhead, and a smaller one on the east wall. One door. Skinny panels are the sills, lintels, and side fills that stop at those openings. Invented sizes, not a client job. On hand in this fiction: 11 sheets of 1200×2700 mm and 8 of 1200×2400 mm.</p>
   <p class="banner" id="banner">EXAMPLE / FICTIONAL — not a real job. This spare room is made up.</p>
   <nav class="jumps no-print">
     <a href="#pull">Sheets to pull</a>
@@ -415,7 +418,7 @@ code { font: 0.92em ui-monospace, Menlo, Consolas, monospace; }
 
 <section class="room-block no-print" id="room">
   <h2>Room preview</h2>
-  <p class="note" id="room-note">Fictional room. Drag to turn, pinch to zoom. Tap a panel to mark it here and on the sheets.</p>
+  <p class="note" id="room-note">Fictional room. The dark framed holes are the door and two windows. Skinny panels are the sills, lintels, and side fills around them. Drag to turn, pinch to zoom. Tap a panel to mark it here and on the sheets.</p>
   <div class="room-view" id="room-view">
     <div class="room-stage"><div class="room-rig" id="room-rig"></div></div>
   </div>
@@ -465,7 +468,7 @@ code { font: 0.92em ui-monospace, Menlo, Consolas, monospace; }
 /* 2D plasterboard cutter for the shop sheet.
    Keep this in step with plaster.py. tests/js_plaster.js checks they match.
    The sample job is substituted when the page is generated. */
-var SAMPLE = {"example":true,"fictional":true,"title":"EXAMPLE / FICTIONAL — spare room","note":"EXAMPLE / FICTIONAL. Not a real bill of materials.","story":"Fictional spare room, 3.6 m by 3.0 m and 2.7 m high. A wardrobe bulk on the west wall, a bulkhead along the window wall, one door and one window. Invented sizes, not a client job. On hand in this fiction: 11 sheets of 1200×2700 mm and 8 of 1200×2400 mm.","kerf_mm":3,"available":[{"count":11,"w":1200,"h":2700},{"count":8,"w":1200,"h":2400}],"desired":[{"count":1,"w":1200,"h":2700,"grain":true,"face":"east","name":"East wall","u":0,"v":0},{"count":1,"w":1200,"h":2700,"grain":true,"face":"east","name":"East wall","u":1200,"v":0},{"count":1,"w":600,"h":2700,"grain":true,"face":"east","name":"East wall","u":2400,"v":0},{"count":1,"w":1200,"h":2700,"grain":true,"face":"south","name":"South wall, left","u":0,"v":0},{"count":1,"w":1200,"h":2700,"grain":true,"face":"south","name":"South wall, beside the door","u":1200,"v":0},{"count":1,"w":380,"h":2700,"grain":true,"face":"south","name":"South wall, right of the door","u":3220,"v":0},{"count":1,"w":820,"h":660,"grain":false,"face":"south","name":"Over the door","u":2400,"v":2040},{"count":1,"w":600,"h":2700,"grain":true,"face":"west","name":"West wall, south of the wardrobe","u":0,"v":0},{"count":1,"w":1200,"h":2700,"grain":true,"face":"west","name":"West wall, north of the wardrobe","u":1800,"v":0},{"count":1,"w":1200,"h":2700,"grain":true,"face":"robeFront","name":"Wardrobe front","u":0,"v":0},{"count":1,"w":600,"h":2700,"grain":true,"face":"robeSouth","name":"Wardrobe return, south","u":0,"v":0},{"count":1,"w":600,"h":2700,"grain":true,"face":"robeNorth","name":"Wardrobe return, north","u":0,"v":0},{"count":1,"w":1200,"h":2400,"grain":true,"face":"north","name":"North wall, left of the window","u":0,"v":0},{"count":1,"w":1200,"h":2400,"grain":true,"face":"north","name":"North wall, right of the window","u":2400,"v":0},{"count":1,"w":1200,"h":900,"grain":false,"face":"north","name":"Under the window","u":1200,"v":0},{"count":1,"w":1200,"h":400,"grain":false,"face":"north","name":"Over the window","u":1200,"v":2000},{"count":1,"w":1200,"h":600,"grain":false,"face":"ceiling","name":"Ceiling, south","u":0,"v":0},{"count":1,"w":1200,"h":600,"grain":false,"face":"ceiling","name":"Ceiling, south","u":1200,"v":0},{"count":1,"w":1200,"h":600,"grain":false,"face":"ceiling","name":"Ceiling, south","u":2400,"v":0},{"count":1,"w":1200,"h":1200,"grain":false,"face":"ceiling","name":"Ceiling, over the room","u":600,"v":600},{"count":1,"w":1200,"h":1200,"grain":false,"face":"ceiling","name":"Ceiling, over the room","u":1800,"v":600},{"count":1,"w":600,"h":1200,"grain":false,"face":"ceiling","name":"Ceiling, by the east wall","u":3000,"v":600},{"count":1,"w":1200,"h":700,"grain":false,"face":"ceiling","name":"Ceiling, by the bulkhead","u":0,"v":1800},{"count":1,"w":1200,"h":700,"grain":false,"face":"ceiling","name":"Ceiling, by the bulkhead","u":1200,"v":1800},{"count":1,"w":1200,"h":700,"grain":false,"face":"ceiling","name":"Ceiling, by the bulkhead","u":2400,"v":1800},{"count":1,"w":1200,"h":500,"grain":false,"face":"soffit","name":"Bulkhead soffit","u":0,"v":0},{"count":1,"w":1200,"h":500,"grain":false,"face":"soffit","name":"Bulkhead soffit","u":1200,"v":0},{"count":1,"w":1200,"h":500,"grain":false,"face":"soffit","name":"Bulkhead soffit","u":2400,"v":0},{"count":1,"w":1200,"h":300,"grain":false,"face":"bulkhead","name":"Bulkhead face","u":0,"v":0},{"count":1,"w":1200,"h":300,"grain":false,"face":"bulkhead","name":"Bulkhead face","u":1200,"v":0},{"count":1,"w":1200,"h":300,"grain":false,"face":"bulkhead","name":"Bulkhead face","u":2400,"v":0},{"count":1,"w":90,"h":2040,"grain":false,"face":"doorWestJamb","name":"Door jamb","u":0,"v":0},{"count":1,"w":90,"h":2040,"grain":false,"face":"doorEastJamb","name":"Door jamb","u":0,"v":0},{"count":1,"w":820,"h":90,"grain":false,"face":"doorHead","name":"Door head reveal","u":0,"v":0},{"count":1,"w":100,"h":1100,"grain":false,"face":"winLeft","name":"Window jamb","u":0,"v":0},{"count":1,"w":100,"h":1100,"grain":false,"face":"winRight","name":"Window jamb","u":0,"v":0},{"count":1,"w":1200,"h":100,"grain":false,"face":"winSill","name":"Window sill","u":0,"v":0},{"count":1,"w":1200,"h":100,"grain":false,"face":"winHead","name":"Window head reveal","u":0,"v":0}],"room":{"length":3600,"width":3000,"height":2700,"openings":[{"name":"Door","face":"south","u":2400,"v":0,"w":820,"h":2040},{"name":"Window","face":"north","u":1200,"v":900,"w":1200,"h":1100}]}};
+var SAMPLE = {"example":true,"fictional":true,"title":"EXAMPLE / FICTIONAL — spare room","note":"EXAMPLE / FICTIONAL. Not a real bill of materials.","story":"Fictional spare room, 3.6 m by 3.0 m and 2.7 m high. A wardrobe bulk on the west wall and a bulkhead over the window wall. Two windows of different sizes: a wide one under the bulkhead, and a smaller one on the east wall. One door. Skinny panels are the sills, lintels, and side fills that stop at those openings. Invented sizes, not a client job. On hand in this fiction: 11 sheets of 1200×2700 mm and 8 of 1200×2400 mm.","kerf_mm":3,"available":[{"count":11,"w":1200,"h":2700},{"count":8,"w":1200,"h":2400}],"desired":[{"count":1,"w":1200,"h":2700,"grain":true,"face":"east","name":"East wall, south","u":0,"v":0},{"count":1,"w":300,"h":2700,"grain":true,"face":"east","name":"Side fill, before the east window","u":1200,"v":0},{"count":1,"w":700,"h":1100,"grain":false,"face":"east","name":"Sill piece, east window","u":1500,"v":0},{"count":1,"w":700,"h":800,"grain":false,"face":"east","name":"Lintel, east window","u":1500,"v":1900},{"count":1,"w":800,"h":2700,"grain":true,"face":"east","name":"Side fill, past the east window","u":2200,"v":0},{"count":1,"w":1200,"h":2700,"grain":true,"face":"south","name":"South wall, left","u":0,"v":0},{"count":1,"w":480,"h":2700,"grain":true,"face":"south","name":"Side fill, left of the door","u":1200,"v":0},{"count":1,"w":820,"h":660,"grain":false,"face":"south","name":"Lintel over the door","u":1680,"v":2040},{"count":1,"w":1100,"h":2700,"grain":true,"face":"south","name":"Side fill, right of the door","u":2500,"v":0},{"count":1,"w":600,"h":2700,"grain":true,"face":"west","name":"West wall, south of the wardrobe","u":0,"v":0},{"count":1,"w":1200,"h":2700,"grain":true,"face":"west","name":"West wall, north of the wardrobe","u":1800,"v":0},{"count":1,"w":1200,"h":2700,"grain":true,"face":"robeFront","name":"Wardrobe front","u":0,"v":0},{"count":1,"w":600,"h":2700,"grain":true,"face":"robeSouth","name":"Wardrobe return, south","u":0,"v":0},{"count":1,"w":600,"h":2700,"grain":true,"face":"robeNorth","name":"Wardrobe return, north","u":0,"v":0},{"count":1,"w":180,"h":2400,"grain":true,"face":"north","name":"Side fill, left of the big window","u":0,"v":0},{"count":1,"w":1200,"h":800,"grain":false,"face":"north","name":"Sill piece, big window","u":180,"v":0},{"count":1,"w":1200,"h":500,"grain":false,"face":"north","name":"Lintel, big window","u":180,"v":1900},{"count":1,"w":420,"h":2400,"grain":true,"face":"north","name":"Side fill, right of the big window","u":1380,"v":0},{"count":1,"w":1200,"h":2400,"grain":true,"face":"north","name":"North wall, beside the window","u":1800,"v":0},{"count":1,"w":600,"h":2400,"grain":true,"face":"north","name":"North wall, by the east corner","u":3000,"v":0},{"count":1,"w":1200,"h":600,"grain":false,"face":"ceiling","name":"Ceiling, south","u":0,"v":0},{"count":1,"w":1200,"h":600,"grain":false,"face":"ceiling","name":"Ceiling, south","u":1200,"v":0},{"count":1,"w":1200,"h":600,"grain":false,"face":"ceiling","name":"Ceiling, south","u":2400,"v":0},{"count":1,"w":1200,"h":1200,"grain":false,"face":"ceiling","name":"Ceiling, over the room","u":600,"v":600},{"count":1,"w":1200,"h":1200,"grain":false,"face":"ceiling","name":"Ceiling, over the room","u":1800,"v":600},{"count":1,"w":600,"h":1200,"grain":false,"face":"ceiling","name":"Ceiling, by the east wall","u":3000,"v":600},{"count":1,"w":1200,"h":700,"grain":false,"face":"ceiling","name":"Ceiling, by the bulkhead","u":0,"v":1800},{"count":1,"w":1200,"h":700,"grain":false,"face":"ceiling","name":"Ceiling, by the bulkhead","u":1200,"v":1800},{"count":1,"w":1200,"h":700,"grain":false,"face":"ceiling","name":"Ceiling, by the bulkhead","u":2400,"v":1800},{"count":1,"w":1200,"h":500,"grain":false,"face":"soffit","name":"Bulkhead soffit","u":0,"v":0},{"count":1,"w":1200,"h":500,"grain":false,"face":"soffit","name":"Bulkhead soffit","u":1200,"v":0},{"count":1,"w":1200,"h":500,"grain":false,"face":"soffit","name":"Bulkhead soffit","u":2400,"v":0},{"count":1,"w":1200,"h":300,"grain":false,"face":"bulkhead","name":"Bulkhead face","u":0,"v":0},{"count":1,"w":1200,"h":300,"grain":false,"face":"bulkhead","name":"Bulkhead face","u":1200,"v":0},{"count":1,"w":1200,"h":300,"grain":false,"face":"bulkhead","name":"Bulkhead face","u":2400,"v":0},{"count":1,"w":90,"h":2040,"grain":false,"face":"doorWestJamb","name":"Door jamb","u":0,"v":0},{"count":1,"w":90,"h":2040,"grain":false,"face":"doorEastJamb","name":"Door jamb","u":0,"v":0},{"count":1,"w":820,"h":90,"grain":false,"face":"doorHead","name":"Door head reveal","u":0,"v":0},{"count":1,"w":100,"h":1100,"grain":false,"face":"winLeft","name":"Big window jamb","u":0,"v":0},{"count":1,"w":100,"h":1100,"grain":false,"face":"winRight","name":"Big window jamb","u":0,"v":0},{"count":1,"w":1200,"h":100,"grain":false,"face":"winSill","name":"Big window sill","u":0,"v":0},{"count":1,"w":1200,"h":100,"grain":false,"face":"winHead","name":"Big window head","u":0,"v":0},{"count":1,"w":100,"h":800,"grain":false,"face":"win2Left","name":"East window jamb","u":0,"v":0},{"count":1,"w":100,"h":800,"grain":false,"face":"win2Right","name":"East window jamb","u":0,"v":0},{"count":1,"w":700,"h":100,"grain":false,"face":"win2Sill","name":"East window sill","u":0,"v":0},{"count":1,"w":700,"h":100,"grain":false,"face":"win2Head","name":"East window head","u":0,"v":0}],"room":{"length":3600,"width":3000,"height":2700,"openings":[{"name":"Door","face":"south","u":1680,"v":0,"w":820,"h":2040},{"name":"Big window","face":"north","u":180,"v":800,"w":1200,"h":1100},{"name":"Small window","face":"east","u":1500,"v":1100,"w":700,"h":800}]}};
 var STORAGE_KEY = "planker-plaster-edit-v2";
 var LIMIT_SHEETS = 80;
 var LIMIT_PANELS = 200;
@@ -1065,7 +1068,7 @@ function unplacedHtml(plan, colours, maxW) {
 
 var selectedId = null;
 var currentPlan = null;
-var roomViewState = {rx: -34, ry: 38, z: 0.07, px: 0, py: 8};
+var roomViewState = {rx: -60, ry: 130, z: 0.082, px: 0, py: 10};
 var roomPointers = {};
 var roomPinched = false;
 var ROOM_CENTER = {x: 1800, y: 1350, z: 1500};
@@ -1081,13 +1084,17 @@ var FACE_GEOM = {
   ceiling: {type: "flat", y: 2700, x0: 0, z0: 0, nudge: [0, -18, 0]},
   soffit: {type: "flat", y: 2400, x0: 0, z0: 2500, nudge: [0, -18, 0]},
   bulkhead: {type: "wall", along: "x", x0: 0, z: 2500, y0: 2400, nudge: [0, 0, -18]},
-  doorWestJamb: {type: "wall", along: "z", x: 2400, z0: 0, y0: 0, nudge: [8, 0, 0]},
-  doorEastJamb: {type: "wall", along: "z", x: 3220, z0: 0, y0: 0, nudge: [-8, 0, 0]},
-  doorHead: {type: "flat", y: 2040, x0: 2400, z0: 0, nudge: [0, -8, 0]},
-  winLeft: {type: "wall", along: "z", x: 1200, z0: 2900, y0: 900, nudge: [8, 0, 0]},
-  winRight: {type: "wall", along: "z", x: 2400, z0: 2900, y0: 900, nudge: [-8, 0, 0]},
-  winSill: {type: "flat", y: 900, x0: 1200, z0: 2900, nudge: [0, 8, 0]},
-  winHead: {type: "flat", y: 2000, x0: 1200, z0: 2900, nudge: [0, -8, 0]}
+  doorWestJamb: {type: "wall", along: "z", x: 1680, z0: 0, y0: 0, nudge: [8, 0, 0]},
+  doorEastJamb: {type: "wall", along: "z", x: 2500, z0: 0, y0: 0, nudge: [-8, 0, 0]},
+  doorHead: {type: "flat", y: 2040, x0: 1680, z0: 0, nudge: [0, -8, 0]},
+  winLeft: {type: "wall", along: "z", x: 180, z0: 2900, y0: 800, nudge: [8, 0, 0]},
+  winRight: {type: "wall", along: "z", x: 1380, z0: 2900, y0: 800, nudge: [-8, 0, 0]},
+  winSill: {type: "flat", y: 800, x0: 180, z0: 2900, nudge: [0, 8, 0]},
+  winHead: {type: "flat", y: 1900, x0: 180, z0: 2900, nudge: [0, -8, 0]},
+  win2Left: {type: "wall", along: "x", x0: 3500, z: 1500, y0: 1100, nudge: [0, 0, -8]},
+  win2Right: {type: "wall", along: "x", x0: 3500, z: 2200, y0: 1100, nudge: [0, 0, 8]},
+  win2Sill: {type: "flatZ", x: 3600, y: 1100, z0: 1500, nudge: [-6, 6, 0]},
+  win2Head: {type: "flatZ", x: 3600, y: 1900, z0: 1500, nudge: [-6, -6, 0]}
 };
 
 function cross3(a, b) {
@@ -1134,6 +1141,10 @@ function piecePose(face, u, v, w, h) {
       axisU = [0, 0, 1];
     }
     axisV = [0, -1, 0];
+  } else if (geom.type === "flatZ") {
+    origin = [geom.x, geom.y, geom.z0 + u];
+    axisU = [0, 0, 1];
+    axisV = [-1, 0, 0];
   } else {
     origin = [geom.x0 + u, geom.y, geom.z0 + v];
     axisU = [1, 0, 0];
@@ -1212,23 +1223,6 @@ function renderRoom(plan) {
     };
     floor.style.transform = panelMatrix(pose.origin, pose.axisU, pose.axisV);
   }
-  var room = (typeof SAMPLE !== "undefined" && SAMPLE && SAMPLE.room) ? SAMPLE.room : null;
-  if (room && room.openings) {
-    room.openings.forEach(function (opening) {
-      var zFace = opening.face === "north" ? "north" : "south";
-      var pose = piecePose(zFace, opening.u, opening.v, opening.w, opening.h);
-      if (!pose) return;
-      var origin = pose.origin.slice();
-      origin[2] = opening.face === "north" ? 3048 : -48;
-      var hole = document.createElement("div");
-      hole.className = "room-opening";
-      hole.style.width = opening.w + "px";
-      hole.style.height = opening.h + "px";
-      hole.style.background = "#241c16";
-      hole.style.transform = panelMatrix(origin, pose.axisU, pose.axisV);
-      rig.appendChild(hole);
-    });
-  }
   collectRoomPieces(plan).forEach(function (piece) {
     addRoomFace(rig, {
       className: piece.placed ? "room-panel" : "room-panel loose",
@@ -1242,6 +1236,25 @@ function renderRoom(plan) {
       title: piece.name
     });
   });
+  var room = (typeof SAMPLE !== "undefined" && SAMPLE && SAMPLE.room) ? SAMPLE.room : null;
+  if (room && room.openings) {
+    room.openings.forEach(function (opening) {
+      var geom = FACE_GEOM[opening.face];
+      var pose = piecePose(opening.face, opening.u, opening.v, opening.w, opening.h);
+      if (!pose || !geom || !geom.nudge) return;
+      var origin = pose.origin.slice();
+      origin[0] -= geom.nudge[0] * 4;
+      origin[1] -= geom.nudge[1] * 4;
+      origin[2] -= geom.nudge[2] * 4;
+      var hole = document.createElement("div");
+      hole.className = "room-opening";
+      hole.style.width = opening.w + "px";
+      hole.style.height = opening.h + "px";
+      hole.title = opening.name || "Opening";
+      hole.style.transform = panelMatrix(origin, pose.axisU, pose.axisV);
+      rig.appendChild(hole);
+    });
+  }
   applyRoomView();
 }
 
@@ -1409,7 +1422,7 @@ function paint(job) {
   if (legend) legend.innerHTML = legendHtml(plan);
   var cutNote = document.getElementById("cut-note");
   if (cutNote) {
-    cutNote.textContent = "Each sheet is to scale with the others. A panel's colour is the same on the sheet and in the room. Tap one to mark it in both. Hatched areas are offcuts. The dark strip is the " +
+    cutNote.textContent = "Skinny panels are the sills, lintels, and side fills that stop at the door and the two windows. Each sheet is to scale with the others. A panel's colour is the same on the sheet and in the room. Tap one to mark it in both. Hatched areas are offcuts. The dark strip is the " +
       job.kerf_mm + " mm saw kerf, drawn with a hairline so a thin blade still shows. A panel marked turned was rotated 90°. Locked panels keep the width and height you entered. Sheet numbers follow the stock list after counts are expanded. A number that is missing here was left on the rack.";
   }
 
@@ -1582,7 +1595,7 @@ function boot() {
   var resetBtn = document.getElementById("room-reset");
   if (resetBtn) {
     resetBtn.addEventListener("click", function () {
-      roomViewState = {rx: -34, ry: 38, z: 0.07, px: 0, py: 8};
+      roomViewState = {rx: -60, ry: 130, z: 0.082, px: 0, py: 10};
       applyRoomView();
     });
   }
