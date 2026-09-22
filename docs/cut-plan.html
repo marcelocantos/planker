@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f3ecdf">
+<title>Planker cut plan</title>
+<style>
+:root {
+  --paper: #f3ecdf;
+  --sheet: #fffaf3;
+  --ink: #1f1a14;
+  --muted: #6d6256;
+  --line: #eadfce;
+  --rule: #d9cbb6;
+  --stamp: #8c2f1b;
+  --ok: #1f7a4d;
+  --shadow: 0 16px 40px rgba(60, 40, 20, 0.08);
+  --dock: 76px;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 18px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  touch-action: manipulation;
+}
+.sheet {
+  max-width: 880px;
+  margin: 0 auto;
+  background: var(--sheet);
+  padding: 16px 16px calc(var(--dock) + env(safe-area-inset-bottom));
+}
+header.top {
+  border-top: 8px solid var(--stamp);
+  padding-top: 14px;
+}
+.kicker {
+  margin: 0;
+  color: var(--stamp);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+h1 {
+  margin: 4px 0 0;
+  font-family: Palatino, "Palatino Linotype", "Iowan Old Style", Georgia, serif;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+.lede { margin: 8px 0 0; color: var(--muted); font-size: 17px; }
+nav.jumps { display: flex; gap: 4px 18px; flex-wrap: wrap; margin: 12px 0 0; }
+nav.jumps a {
+  color: var(--stamp);
+  font-size: 17px;
+  font-weight: 700;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+h2 {
+  margin: 28px 0 8px;
+  font-family: Palatino, "Palatino Linotype", Georgia, serif;
+  font-size: 28px;
+  line-height: 1.15;
+  break-after: avoid;
+}
+h3 { margin: 22px 0 6px; font-size: 18px; break-after: avoid; }
+p.note, .footnote { color: var(--muted); font-size: 16px; }
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 16px 0 8px;
+}
+.stats div {
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 10px 12px 12px;
+  min-height: 72px;
+}
+.stats dt {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.stats dd { margin: 2px 0 0; font-size: 28px; font-variant-numeric: tabular-nums; font-weight: 700; }
+.stats dd small { font-size: 15px; font-weight: 600; color: var(--muted); margin-left: 4px; }
+.stats .bad dd { color: var(--stamp); }
+.stats .ok dd { color: var(--ok); }
+.pull, .leave, .rows { list-style: none; margin: 0; padding: 0; }
+.pull { border-left: 4px solid var(--stamp); padding-left: 12px; }
+.leave { border-left: 4px solid #c4b39a; padding-left: 12px; }
+.total { margin: 8px 0 0; font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; }
+.pull li, .leave li, .rows li { border-top: 1px solid var(--line); }
+.pull label, .leave li {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 0;
+  min-height: 84px;
+  padding: 12px 0;
+}
+.leave li { grid-template-columns: 1fr; min-height: 76px; }
+.pull input {
+  grid-row: 1 / span 3;
+  width: 28px;
+  height: 28px;
+  justify-self: center;
+  accent-color: var(--stamp);
+}
+.pull .count, .leave .count, .rows .count {
+  font-size: 40px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.mm { font-size: 26px; font-variant-numeric: tabular-nums; font-weight: 700; }
+.m, .sub, .rows .idx { color: var(--muted); font-size: 16px; font-variant-numeric: tabular-nums; }
+.rows li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  min-height: 56px;
+  padding: 12px 0;
+}
+.rows .count { font-size: 28px; }
+.rows .mm { font-size: 20px; }
+.rows .idx { min-width: 4.2em; font-weight: 700; }
+b.miss { color: var(--stamp); }
+.swatch, .chip i {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 8px;
+  vertical-align: -1px;
+  border: 1px solid rgba(31, 26, 20, 0.25);
+}
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; list-style: none; padding: 0; margin: 8px 0 12px; }
+.legend li { display: flex; align-items: center; gap: 8px; font-size: 16px; min-height: 32px; }
+.key { width: 28px; height: 16px; border: 1px solid rgba(31, 26, 20, 0.35); }
+.key.kerf { background: #1f1a14; }
+.key.off {
+  background: repeating-linear-gradient(45deg, #f4e7d4, #f4e7d4 3px, #c4a484 3px, #c4a484 5px);
+}
+.key.idle {
+  background: repeating-linear-gradient(45deg, #f7f1e6, #f7f1e6 4px, #d9cbb8 4px, #d9cbb8 6px);
+}
+.viz { min-width: 0; width: 100%; }
+.board {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+  break-inside: avoid;
+}
+.board.idle { background: #f6f0e6; }
+.ruler-row { border-top: 0; padding-top: 0; padding-bottom: 0; }
+.ruler-row .meta, .ruler-row > div:last-child { display: none; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+.idx { color: var(--muted); font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.cuts-n { color: var(--muted); font-size: 16px; }
+.stock { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.offcut { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.offcut strong { font-size: 32px; font-variant-numeric: tabular-nums; line-height: 1; }
+.offcut span { color: var(--muted); font-size: 16px; }
+.tag.short { color: var(--stamp); font-weight: 700; }
+.tag.keep { color: var(--ok); font-weight: 700; }
+.phrase { margin: 0; color: var(--muted); font-size: 16px; }
+.bar { width: 100%; height: 72px; display: block; }
+.bar text { display: none; }
+.ruler { position: relative; height: 36px; margin: 0; }
+.ruler i {
+  position: absolute;
+  bottom: 0;
+  width: 1px;
+  background: #8a7b68;
+}
+.ruler i.major { height: 12px; }
+.ruler i.minor { height: 7px; }
+.ruler span {
+  position: absolute;
+  top: 0;
+  font-size: 14px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ruler span.mid { transform: translateX(-50%); }
+.ruler span.end { transform: translateX(-100%); }
+.chips { margin: 4px 0 0; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  margin: 0 8px 8px 0;
+  padding: 6px 10px 6px 8px;
+  background: #fff;
+  border: 1px solid var(--line);
+  font-variant-numeric: tabular-nums;
+  font-size: 17px;
+}
+.chip.off, .chip.quiet { color: var(--muted); }
+.check { margin: 0; color: var(--muted); font-size: 15px; font-variant-numeric: tabular-nums; }
+.plain-wrap summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  cursor: pointer;
+}
+#edit { margin-top: 8px; }
+#edit summary {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-family: Palatino, "Palatino Linotype", Georgia, serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+.edit-row {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) auto;
+  gap: 8px;
+  align-items: end;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+.edit-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.edit-row input {
+  font: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  width: 100%;
+  background: #fff;
+  color: var(--ink);
+}
+.edit-row .remove { min-width: 48px; padding: 10px 12px; }
+.add-row { width: 100%; margin: 8px 0 16px; }
+.kerf-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  min-height: 48px;
+  margin: 8px 0 12px;
+}
+.kerf-field input {
+  font: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  width: 4.5em;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: #fff;
+}
+#restore-sample { width: 100%; }
+pre.plain {
+  background: #fff;
+  border: 1px solid var(--line);
+  padding: 12px 14px;
+  overflow: auto;
+  font: 15px/1.45 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+.length-group { margin-top: 8px; }
+.length-group h3 { margin-bottom: 0; }
+.keep { break-inside: avoid; }
+button {
+  background: var(--ink);
+  color: var(--sheet);
+  border: 0;
+  border-radius: 8px;
+  min-height: 48px;
+  padding: 10px 12px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+button.ghost { background: #fff; color: var(--ink); border: 1px solid var(--rule); }
+.dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  background: rgba(255, 250, 243, 0.97);
+  border-top: 1px solid var(--rule);
+}
+.dock button { flex: 1; font-size: 17px; }
+@media (min-width: 680px) {
+  .sheet {
+    margin: 20px auto 32px;
+    padding: 28px 28px calc(var(--dock) + 24px);
+    border: 1px solid var(--rule);
+    box-shadow: var(--shadow);
+  }
+  h1 { font-size: 40px; }
+  .stats { grid-template-columns: repeat(4, 1fr); }
+  .board {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr) 132px;
+    gap: 12px;
+    align-items: start;
+  }
+  .ruler-row .meta, .ruler-row > div:last-child { display: block; }
+  .meta { display: block; padding-top: 8px; }
+  .offcut { display: block; text-align: right; padding-top: 8px; }
+  .offcut span { display: block; }
+  .dock {
+    left: 50%;
+    right: auto;
+    width: min(880px, calc(100% - 32px));
+    transform: translateX(-50%);
+    border: 1px solid var(--rule);
+    border-bottom: 0;
+    border-radius: 12px 12px 0 0;
+  }
+}
+@page { size: A4; margin: 12mm; }
+@media print {
+  body { background: #fff; }
+  .sheet { margin: 0; max-width: none; border: 0; box-shadow: none; padding: 0; }
+  .no-print, .dock { display: none !important; }
+  .cut-plan { break-before: page; }
+  .bar { height: 28px; }
+  a { color: inherit; text-decoration: none; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+<main class="sheet">
+<header class="top">
+  <p class="kicker">Planker</p>
+  <h1>Cut plan and lumber list</h1>
+  <p class="lede">Open this page on your phone at the yard. Tick a row as you pull that board. Edit stock and pieces when this job is different. Kerf is 3 mm between cuts.</p>
+  <nav class="jumps no-print">
+    <a href="#edit">Edit</a>
+    <a href="#yard">Lumber list</a>
+    <a href="#cuts">Cut plan</a>
+  </nav>
+</header>
+
+<dl class="stats" id="stats">
+  <div><dt>Pull</dt><dd>13 <small>boards</small></dd></div>
+  <div><dt>Leave</dt><dd>2 <small>boards</small></dd></div>
+  <div><dt>Placed</dt><dd>62 <small>pieces</small></dd></div>
+  <div class="ok"><dt>Not placed</dt><dd>0 <small>pieces</small></dd></div>
+</dl>
+<p class="note" id="summary-note">On hand: 15 boards, 74,715 mm (74.715 m). Project: 62 pieces, 62,276 mm (62.276 m). Offcut on pulled boards: 1,492 mm. Saw kerf: 147 mm.</p>
+
+<details id="edit" class="no-print">
+  <summary>Edit stock and pieces</summary>
+  <p class="note" id="edit-note">5 rows, 15 boards on hand. 25 rows, 62 pieces to cut. Change a count or a length and the list updates. Add a row only when you have a real length to enter.</p>
+  <h3>Available stock</h3>
+  <div id="stock-rows"><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="11"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="5400"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="1"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="3835"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="1"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="3830"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="1"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="3830"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="1"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="3820"></label><button type="button" class="remove ghost">Remove</button></div></div>
+  <button type="button" class="add-row" id="add-stock">Add a stock length</button>
+  <h3>Pieces to cut</h3>
+  <div id="piece-rows"><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="5"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="1800"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="4"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="1310"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="1"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="675"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="2"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="1320"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="4"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="890"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="4"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="280"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="2"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="468"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="2"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="280"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="4"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="1300"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="2"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="900"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="1"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="645"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="1"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="200"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="2"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="945"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="2"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="405"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="2"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="1430"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="4"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="1300"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="2"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="1430"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="3"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="1300"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="2"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="900"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="4"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="1300"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="2"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="520"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="2"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="945"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="2"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="405"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="2"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="945"></label><button type="button" class="remove ghost">Remove</button></div><div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="1"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="550"></label><button type="button" class="remove ghost">Remove</button></div></div>
+  <button type="button" class="add-row" id="add-piece">Add a piece length</button>
+  <label class="kerf-field">Saw kerf
+    <input id="kerf-input" inputmode="numeric" enterkeyhint="done" min="0" step="1" value="3">
+    mm
+  </label>
+  <button type="button" class="ghost" id="restore-sample">Restore sample job</button>
+</details>
+
+<section id="yard">
+  <h2>Lumber-yard list</h2>
+  <p class="note">Tick these off as you pull them. Use the length on the row — a shorter board is not a substitute. Counts are boards this plan cuts, taken from <code>available</code>.</p>
+  <h3>Pull</h3>
+  <ul class="pull" id="pull-list"><li><label><input type='checkbox'><span class='count'>9</span><span class='mm'>5,400 mm</span><span class='m'>5.400 m each</span></label></li><li><label><input type='checkbox'><span class='count'>1</span><span class='mm'>3,835 mm</span><span class='m'>3.835 m each</span></label></li><li><label><input type='checkbox'><span class='count'>2</span><span class='mm'>3,830 mm</span><span class='m'>3.830 m each</span></label></li><li><label><input type='checkbox'><span class='count'>1</span><span class='mm'>3,820 mm</span><span class='m'>3.820 m each</span></label></li></ul>
+  <p class="total" id="pull-total">13 boards · 63,915 mm · 63.915 m</p>
+  <div id="leave-block">
+  <h3>Leave on the rack</h3>
+  <ul class="leave"><li><span class='count'>2</span><span class='mm'>5,400 mm</span><span class='m'>5.400 m each</span></li></ul><p class='total'>2 boards · 10,800 mm · 10.800 m</p>
+  </div>
+  <div id="missing-block"><p class='note'>Every desired piece is on a board in the cut plan. Nothing further to buy for these cuts.</p></div>
+  <div class="keep">
+  <h3>Stock balance</h3>
+  <ul class="rows" id="balance-list"><li><span class='mm'>5,400 mm</span><span class='sub'>On hand 11 · Pull 9 · Leave 2</span></li><li><span class='mm'>3,835 mm</span><span class='sub'>On hand 1 · Pull 1 · Leave 0</span></li><li><span class='mm'>3,830 mm</span><span class='sub'>On hand 2 · Pull 2 · Leave 0</span></li><li><span class='mm'>3,820 mm</span><span class='sub'>On hand 1 · Pull 1 · Leave 0</span></li></ul>
+  </div>
+  <details class="plain-wrap no-print">
+    <summary>Plain text</summary>
+    <pre id="lumber-text" class="plain">PLANKER LUMBER LIST
+Kerf: 3 mm between cuts on the same board
+
+PULL
+9 x 5400 mm (5.400 m)
+1 x 3835 mm (3.835 m)
+2 x 3830 mm (3.830 m)
+1 x 3820 mm (3.820 m)
+Total: 13 boards, 63915 mm (63.915 m)
+
+LEAVE
+2 x 5400 mm (5.400 m)
+
+DOES NOT FIT
+none
+</pre>
+  </details>
+</section>
+
+<section id="cuts" class="cut-plan">
+  <h2>Cut plan</h2>
+  <p class="note" id="cut-note">Each bar is one board, to scale with the ruler (millimetres). Board numbers follow the TSV rows. Left to right is the cut order. A short offcut is a thin sliver; the number at the right is its length. The dark line is the 3 mm kerf, drawn at least a hairline so it stays visible. “Too short” means the offcut is shorter than every piece on this job.</p>
+  <ul class="legend" id="cut-legend">
+    <li><i class="key kerf"></i> Kerf 3 mm</li>
+    <li><i class="key off"></i> Offcut</li>
+    <li><i class="key idle"></i> Board not cut</li>
+  </ul>
+  <div id="cut-body">
+  <div class="board ruler-row"><div class="meta"></div><div class="viz"><div class="ruler" aria-hidden="true"><i class="major" style="left:0.0000%"></i><i class="minor" style="left:9.2593%"></i><i class="major" style="left:18.5185%"></i><i class="minor" style="left:27.7778%"></i><i class="major" style="left:37.0370%"></i><i class="minor" style="left:46.2963%"></i><i class="major" style="left:55.5556%"></i><i class="minor" style="left:64.8148%"></i><i class="major" style="left:74.0741%"></i><i class="minor" style="left:83.3333%"></i><i class="major" style="left:92.5926%"></i><i class="major" style="left:100.0000%"></i><span class="start" style="left:0.0000%">0</span><span class="mid" style="left:18.5185%">1000</span><span class="mid" style="left:37.0370%">2000</span><span class="mid" style="left:55.5556%">3000</span><span class="mid" style="left:74.0741%">4000</span><span class="end" style="left:100.0000%">5400</span></div></div><div></div></div>
+  <div class='length-group'><h3>5,400 mm boards</h3><article class='board'>
+<div class='meta'><span class='idx'>Board 1</span><span class='stock'>5400</span><span class='cuts-n'>4 cuts</span></div>
+<div class='viz'><svg class="bar" viewBox="0 0 5400 460" preserveAspectRatio="none" role="img" aria-label="Board 1, 5400 mm, cuts 1430, 1320, 1320, 1310, offcut 11 mm"><defs><pattern id="offcut-1" patternUnits="userSpaceOnUse" width="90" height="90" patternTransform="rotate(45)"><rect width="90" height="90" fill="#f4e7d4"/><line x1="0" y1="0" x2="0" y2="90" stroke="#c4a484" stroke-width="28"/></pattern><pattern id="unused-1" patternUnits="userSpaceOnUse" width="120" height="120" patternTransform="rotate(45)"><rect width="120" height="120" fill="#f7f1e6"/><line x1="0" y1="0" x2="0" y2="120" stroke="#d9cbb8" stroke-width="22"/></pattern></defs><line x1="0" y1="448" x2="5400" y2="448" stroke="#e4d9c8" stroke-width="8"/><rect x="0" y="12" width="1430" height="420" fill="#d85a1a"><title>1430 mm</title></rect><text x="715.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1430</text><rect x="1430" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="1431.5" y1="12" x2="1431.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="1433" y="12" width="1320" height="420" fill="#c48a00"><title>1320 mm</title></rect><text x="2093.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1320</text><rect x="2753" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="2754.5" y1="12" x2="2754.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="2756" y="12" width="1320" height="420" fill="#c48a00"><title>1320 mm</title></rect><text x="3416.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1320</text><rect x="4076" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="4077.5" y1="12" x2="4077.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="4079" y="12" width="1310" height="420" fill="#5f7f24"><title>1310 mm</title></rect><text x="4734.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1310</text><rect x="5389" y="12" width="11" height="420" fill="url(#offcut-1)"><title>11 mm offcut</title></rect><rect x="0" y="12" width="5400" height="420" fill="none" stroke="#1f1a14" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg><p class='chips'><span class='chip'><i style='background:#d85a1a'></i>1430</span><span class='chip'><i style='background:#c48a00'></i>1320</span><span class='chip'><i style='background:#c48a00'></i>1320</span><span class='chip'><i style='background:#5f7f24'></i>1310</span><span class='chip off'>11 left</span></p><p class='check'>1,430 + 1,320 + 1,320 + 1,310 + kerf 9 + offcut 11 = 5,400</p></div>
+<div class='offcut'><strong>11</strong><span>mm offcut</span><span class='tag short'>too short</span></div>
+</article>
+<article class='board'>
+<div class='meta'><span class='idx'>Board 2</span><span class='stock'>5400</span><span class='cuts-n'>4 cuts</span></div>
+<div class='viz'><svg class="bar" viewBox="0 0 5400 460" preserveAspectRatio="none" role="img" aria-label="Board 2, 5400 mm, cuts 1310, 1310, 1310, 1300, offcut 161 mm"><defs><pattern id="offcut-2" patternUnits="userSpaceOnUse" width="90" height="90" patternTransform="rotate(45)"><rect width="90" height="90" fill="#f4e7d4"/><line x1="0" y1="0" x2="0" y2="90" stroke="#c4a484" stroke-width="28"/></pattern><pattern id="unused-2" patternUnits="userSpaceOnUse" width="120" height="120" patternTransform="rotate(45)"><rect width="120" height="120" fill="#f7f1e6"/><line x1="0" y1="0" x2="0" y2="120" stroke="#d9cbb8" stroke-width="22"/></pattern></defs><line x1="0" y1="448" x2="5400" y2="448" stroke="#e4d9c8" stroke-width="8"/><rect x="0" y="12" width="1310" height="420" fill="#5f7f24"><title>1310 mm</title></rect><text x="655.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1310</text><rect x="1310" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="1311.5" y1="12" x2="1311.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="1313" y="12" width="1310" height="420" fill="#5f7f24"><title>1310 mm</title></rect><text x="1968.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1310</text><rect x="2623" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="2624.5" y1="12" x2="2624.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="2626" y="12" width="1310" height="420" fill="#5f7f24"><title>1310 mm</title></rect><text x="3281.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1310</text><rect x="3936" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="3937.5" y1="12" x2="3937.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="3939" y="12" width="1300" height="420" fill="#1f7a4d"><title>1300 mm</title></rect><text x="4589.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1300</text><rect x="5239" y="12" width="161" height="420" fill="url(#offcut-2)"><title>161 mm offcut</title></rect><rect x="0" y="12" width="5400" height="420" fill="none" stroke="#1f1a14" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg><p class='chips'><span class='chip'><i style='background:#5f7f24'></i>1310</span><span class='chip'><i style='background:#5f7f24'></i>1310</span><span class='chip'><i style='background:#5f7f24'></i>1310</span><span class='chip'><i style='background:#1f7a4d'></i>1300</span><span class='chip off'>161 left</span></p><p class='check'>1,310 + 1,310 + 1,310 + 1,300 + kerf 9 + offcut 161 = 5,400</p></div>
+<div class='offcut'><strong>161</strong><span>mm offcut</span><span class='tag short'>too short</span></div>
+</article>
+<article class='board'>
+<div class='meta'><span class='idx'>Board 3</span><span class='stock'>5400</span><span class='cuts-n'>4 cuts</span></div>
+<div class='viz'><svg class="bar" viewBox="0 0 5400 460" preserveAspectRatio="none" role="img" aria-label="Board 3, 5400 mm, cuts 1300, 1300, 1300, 1300, offcut 191 mm"><defs><pattern id="offcut-3" patternUnits="userSpaceOnUse" width="90" height="90" patternTransform="rotate(45)"><rect width="90" height="90" fill="#f4e7d4"/><line x1="0" y1="0" x2="0" y2="90" stroke="#c4a484" stroke-width="28"/></pattern><pattern id="unused-3" patternUnits="userSpaceOnUse" width="120" height="120" patternTransform="rotate(45)"><rect width="120" height="120" fill="#f7f1e6"/><line x1="0" y1="0" x2="0" y2="120" stroke="#d9cbb8" stroke-width="22"/></pattern></defs><line x1="0" y1="448" x2="5400" y2="448" stroke="#e4d9c8" stroke-width="8"/><rect x="0" y="12" width="1300" height="420" fill="#1f7a4d"><title>1300 mm</title></rect><text x="650.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1300</text><rect x="1300" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="1301.5" y1="12" x2="1301.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="1303" y="12" width="1300" height="420" fill="#1f7a4d"><title>1300 mm</title></rect><text x="1953.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1300</text><rect x="2603" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="2604.5" y1="12" x2="2604.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="2606" y="12" width="1300" height="420" fill="#1f7a4d"><title>1300 mm</title></rect><text x="3256.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1300</text><rect x="3906" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="3907.5" y1="12" x2="3907.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="3909" y="12" width="1300" height="420" fill="#1f7a4d"><title>1300 mm</title></rect><text x="4559.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1300</text><rect x="5209" y="12" width="191" height="420" fill="url(#offcut-3)"><title>191 mm offcut</title></rect><rect x="0" y="12" width="5400" height="420" fill="none" stroke="#1f1a14" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg><p class='chips'><span class='chip'><i style='background:#1f7a4d'></i>1300</span><span class='chip'><i style='background:#1f7a4d'></i>1300</span><span class='chip'><i style='background:#1f7a4d'></i>1300</span><span class='chip'><i style='background:#1f7a4d'></i>1300</span><span class='chip off'>191 left</span></p><p class='check'>1,300 + 1,300 + 1,300 + 1,300 + kerf 9 + offcut 191 = 5,400</p></div>
+<div class='offcut'><strong>191</strong><span>mm offcut</span><span class='tag short'>too short</span></div>
+</article>
+<article class='board'>
+<div class='meta'><span class='idx'>Board 4</span><span class='stock'>5400</span><span class='cuts-n'>4 cuts</span></div>
+<div class='viz'><svg class="bar" viewBox="0 0 5400 460" preserveAspectRatio="none" role="img" aria-label="Board 4, 5400 mm, cuts 1300, 1300, 1300, 1300, offcut 191 mm"><defs><pattern id="offcut-4" patternUnits="userSpaceOnUse" width="90" height="90" patternTransform="rotate(45)"><rect width="90" height="90" fill="#f4e7d4"/><line x1="0" y1="0" x2="0" y2="90" stroke="#c4a484" stroke-width="28"/></pattern><pattern id="unused-4" patternUnits="userSpaceOnUse" width="120" height="120" patternTransform="rotate(45)"><rect width="120" height="120" fill="#f7f1e6"/><line x1="0" y1="0" x2="0" y2="120" stroke="#d9cbb8" stroke-width="22"/></pattern></defs><line x1="0" y1="448" x2="5400" y2="448" stroke="#e4d9c8" stroke-width="8"/><rect x="0" y="12" width="1300" height="420" fill="#1f7a4d"><title>1300 mm</title></rect><text x="650.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1300</text><rect x="1300" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="1301.5" y1="12" x2="1301.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="1303" y="12" width="1300" height="420" fill="#1f7a4d"><title>1300 mm</title></rect><text x="1953.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1300</text><rect x="2603" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="2604.5" y1="12" x2="2604.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="2606" y="12" width="1300" height="420" fill="#1f7a4d"><title>1300 mm</title></rect><text x="3256.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1300</text><rect x="3906" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="3907.5" y1="12" x2="3907.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="3909" y="12" width="1300" height="420" fill="#1f7a4d"><title>1300 mm</title></rect><text x="4559.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1300</text><rect x="5209" y="12" width="191" height="420" fill="url(#offcut-4)"><title>191 mm offcut</title></rect><rect x="0" y="12" width="5400" height="420" fill="none" stroke="#1f1a14" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg><p class='chips'><span class='chip'><i style='background:#1f7a4d'></i>1300</span><span class='chip'><i style='background:#1f7a4d'></i>1300</span><span class='chip'><i style='background:#1f7a4d'></i>1300</span><span class='chip'><i style='background:#1f7a4d'></i>1300</span><span class='chip off'>191 left</span></p><p class='check'>1,300 + 1,300 + 1,300 + 1,300 + kerf 9 + offcut 191 = 5,400</p></div>
+<div class='offcut'><strong>191</strong><span>mm offcut</span><span class='tag short'>too short</span></div>
+</article>
+<article class='board'>
+<div class='meta'><span class='idx'>Board 5</span><span class='stock'>5400</span><span class='cuts-n'>4 cuts</span></div>
+<div class='viz'><svg class="bar" viewBox="0 0 5400 460" preserveAspectRatio="none" role="img" aria-label="Board 5, 5400 mm, cuts 1300, 1300, 1300, 1300, offcut 191 mm"><defs><pattern id="offcut-5" patternUnits="userSpaceOnUse" width="90" height="90" patternTransform="rotate(45)"><rect width="90" height="90" fill="#f4e7d4"/><line x1="0" y1="0" x2="0" y2="90" stroke="#c4a484" stroke-width="28"/></pattern><pattern id="unused-5" patternUnits="userSpaceOnUse" width="120" height="120" patternTransform="rotate(45)"><rect width="120" height="120" fill="#f7f1e6"/><line x1="0" y1="0" x2="0" y2="120" stroke="#d9cbb8" stroke-width="22"/></pattern></defs><line x1="0" y1="448" x2="5400" y2="448" stroke="#e4d9c8" stroke-width="8"/><rect x="0" y="12" width="1300" height="420" fill="#1f7a4d"><title>1300 mm</title></rect><text x="650.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1300</text><rect x="1300" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="1301.5" y1="12" x2="1301.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="1303" y="12" width="1300" height="420" fill="#1f7a4d"><title>1300 mm</title></rect><text x="1953.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1300</text><rect x="2603" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="2604.5" y1="12" x2="2604.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="2606" y="12" width="1300" height="420" fill="#1f7a4d"><title>1300 mm</title></rect><text x="3256.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1300</text><rect x="3906" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="3907.5" y1="12" x2="3907.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="3909" y="12" width="1300" height="420" fill="#1f7a4d"><title>1300 mm</title></rect><text x="4559.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1300</text><rect x="5209" y="12" width="191" height="420" fill="url(#offcut-5)"><title>191 mm offcut</title></rect><rect x="0" y="12" width="5400" height="420" fill="none" stroke="#1f1a14" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg><p class='chips'><span class='chip'><i style='background:#1f7a4d'></i>1300</span><span class='chip'><i style='background:#1f7a4d'></i>1300</span><span class='chip'><i style='background:#1f7a4d'></i>1300</span><span class='chip'><i style='background:#1f7a4d'></i>1300</span><span class='chip off'>191 left</span></p><p class='check'>1,300 + 1,300 + 1,300 + 1,300 + kerf 9 + offcut 191 = 5,400</p></div>
+<div class='offcut'><strong>191</strong><span>mm offcut</span><span class='tag short'>too short</span></div>
+</article>
+<article class='board'>
+<div class='meta'><span class='idx'>Board 6</span><span class='stock'>5400</span><span class='cuts-n'>5 cuts</span></div>
+<div class='viz'><svg class="bar" viewBox="0 0 5400 460" preserveAspectRatio="none" role="img" aria-label="Board 6, 5400 mm, cuts 1300, 1300, 945, 945, 890, offcut 8 mm"><defs><pattern id="offcut-6" patternUnits="userSpaceOnUse" width="90" height="90" patternTransform="rotate(45)"><rect width="90" height="90" fill="#f4e7d4"/><line x1="0" y1="0" x2="0" y2="90" stroke="#c4a484" stroke-width="28"/></pattern><pattern id="unused-6" patternUnits="userSpaceOnUse" width="120" height="120" patternTransform="rotate(45)"><rect width="120" height="120" fill="#f7f1e6"/><line x1="0" y1="0" x2="0" y2="120" stroke="#d9cbb8" stroke-width="22"/></pattern></defs><line x1="0" y1="448" x2="5400" y2="448" stroke="#e4d9c8" stroke-width="8"/><rect x="0" y="12" width="1300" height="420" fill="#1f7a4d"><title>1300 mm</title></rect><text x="650.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1300</text><rect x="1300" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="1301.5" y1="12" x2="1301.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="1303" y="12" width="1300" height="420" fill="#1f7a4d"><title>1300 mm</title></rect><text x="1953.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1300</text><rect x="2603" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="2604.5" y1="12" x2="2604.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="2606" y="12" width="945" height="420" fill="#0f766e"><title>945 mm</title></rect><text x="3078.5" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">945</text><rect x="3551" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="3552.5" y1="12" x2="3552.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="3554" y="12" width="945" height="420" fill="#0f766e"><title>945 mm</title></rect><text x="4026.5" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">945</text><rect x="4499" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="4500.5" y1="12" x2="4500.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="4502" y="12" width="890" height="420" fill="#2a4e8a"><title>890 mm</title></rect><text x="4947.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">890</text><rect x="5392" y="12" width="8" height="420" fill="url(#offcut-6)"><title>8 mm offcut</title></rect><rect x="0" y="12" width="5400" height="420" fill="none" stroke="#1f1a14" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg><p class='chips'><span class='chip'><i style='background:#1f7a4d'></i>1300</span><span class='chip'><i style='background:#1f7a4d'></i>1300</span><span class='chip'><i style='background:#0f766e'></i>945</span><span class='chip'><i style='background:#0f766e'></i>945</span><span class='chip'><i style='background:#2a4e8a'></i>890</span><span class='chip off'>8 left</span></p><p class='check'>1,300 + 1,300 + 945 + 945 + 890 + kerf 12 + offcut 8 = 5,400</p></div>
+<div class='offcut'><strong>8</strong><span>mm offcut</span><span class='tag short'>too short</span></div>
+</article>
+<article class='board'>
+<div class='meta'><span class='idx'>Board 7</span><span class='stock'>5400</span><span class='cuts-n'>6 cuts</span></div>
+<div class='viz'><svg class="bar" viewBox="0 0 5400 460" preserveAspectRatio="none" role="img" aria-label="Board 7, 5400 mm, cuts 945, 945, 945, 900, 900, 675, offcut 75 mm"><defs><pattern id="offcut-7" patternUnits="userSpaceOnUse" width="90" height="90" patternTransform="rotate(45)"><rect width="90" height="90" fill="#f4e7d4"/><line x1="0" y1="0" x2="0" y2="90" stroke="#c4a484" stroke-width="28"/></pattern><pattern id="unused-7" patternUnits="userSpaceOnUse" width="120" height="120" patternTransform="rotate(45)"><rect width="120" height="120" fill="#f7f1e6"/><line x1="0" y1="0" x2="0" y2="120" stroke="#d9cbb8" stroke-width="22"/></pattern></defs><line x1="0" y1="448" x2="5400" y2="448" stroke="#e4d9c8" stroke-width="8"/><rect x="0" y="12" width="945" height="420" fill="#0f766e"><title>945 mm</title></rect><text x="472.5" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">945</text><rect x="945" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="946.5" y1="12" x2="946.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="948" y="12" width="945" height="420" fill="#0f766e"><title>945 mm</title></rect><text x="1420.5" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">945</text><rect x="1893" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="1894.5" y1="12" x2="1894.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="1896" y="12" width="945" height="420" fill="#0f766e"><title>945 mm</title></rect><text x="2368.5" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">945</text><rect x="2841" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="2842.5" y1="12" x2="2842.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="2844" y="12" width="900" height="420" fill="#1d6a93"><title>900 mm</title></rect><text x="3294.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">900</text><rect x="3744" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="3745.5" y1="12" x2="3745.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="3747" y="12" width="900" height="420" fill="#1d6a93"><title>900 mm</title></rect><text x="4197.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">900</text><rect x="4647" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="4648.5" y1="12" x2="4648.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="4650" y="12" width="675" height="420" fill="#5b3f8c"><title>675 mm</title></rect><text x="4987.5" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">675</text><rect x="5325" y="12" width="75" height="420" fill="url(#offcut-7)"><title>75 mm offcut</title></rect><rect x="0" y="12" width="5400" height="420" fill="none" stroke="#1f1a14" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg><p class='chips'><span class='chip'><i style='background:#0f766e'></i>945</span><span class='chip'><i style='background:#0f766e'></i>945</span><span class='chip'><i style='background:#0f766e'></i>945</span><span class='chip'><i style='background:#1d6a93'></i>900</span><span class='chip'><i style='background:#1d6a93'></i>900</span><span class='chip'><i style='background:#5b3f8c'></i>675</span><span class='chip off'>75 left</span></p><p class='check'>945 + 945 + 945 + 900 + 900 + 675 + kerf 15 + offcut 75 = 5,400</p></div>
+<div class='offcut'><strong>75</strong><span>mm offcut</span><span class='tag short'>too short</span></div>
+</article>
+<article class='board'>
+<div class='meta'><span class='idx'>Board 8</span><span class='stock'>5400</span><span class='cuts-n'>6 cuts</span></div>
+<div class='viz'><svg class="bar" viewBox="0 0 5400 460" preserveAspectRatio="none" role="img" aria-label="Board 8, 5400 mm, cuts 900, 900, 890, 890, 890, 645, offcut 270 mm"><defs><pattern id="offcut-8" patternUnits="userSpaceOnUse" width="90" height="90" patternTransform="rotate(45)"><rect width="90" height="90" fill="#f4e7d4"/><line x1="0" y1="0" x2="0" y2="90" stroke="#c4a484" stroke-width="28"/></pattern><pattern id="unused-8" patternUnits="userSpaceOnUse" width="120" height="120" patternTransform="rotate(45)"><rect width="120" height="120" fill="#f7f1e6"/><line x1="0" y1="0" x2="0" y2="120" stroke="#d9cbb8" stroke-width="22"/></pattern></defs><line x1="0" y1="448" x2="5400" y2="448" stroke="#e4d9c8" stroke-width="8"/><rect x="0" y="12" width="900" height="420" fill="#1d6a93"><title>900 mm</title></rect><text x="450.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">900</text><rect x="900" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="901.5" y1="12" x2="901.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="903" y="12" width="900" height="420" fill="#1d6a93"><title>900 mm</title></rect><text x="1353.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">900</text><rect x="1803" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="1804.5" y1="12" x2="1804.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="1806" y="12" width="890" height="420" fill="#2a4e8a"><title>890 mm</title></rect><text x="2251.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">890</text><rect x="2696" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="2697.5" y1="12" x2="2697.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="2699" y="12" width="890" height="420" fill="#2a4e8a"><title>890 mm</title></rect><text x="3144.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">890</text><rect x="3589" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="3590.5" y1="12" x2="3590.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="3592" y="12" width="890" height="420" fill="#2a4e8a"><title>890 mm</title></rect><text x="4037.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">890</text><rect x="4482" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="4483.5" y1="12" x2="4483.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="4485" y="12" width="645" height="420" fill="#8e3a78"><title>645 mm</title></rect><text x="4807.5" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">645</text><rect x="5130" y="12" width="270" height="420" fill="url(#offcut-8)"><title>270 mm offcut</title></rect><rect x="0" y="12" width="5400" height="420" fill="none" stroke="#1f1a14" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg><p class='chips'><span class='chip'><i style='background:#1d6a93'></i>900</span><span class='chip'><i style='background:#1d6a93'></i>900</span><span class='chip'><i style='background:#2a4e8a'></i>890</span><span class='chip'><i style='background:#2a4e8a'></i>890</span><span class='chip'><i style='background:#2a4e8a'></i>890</span><span class='chip'><i style='background:#8e3a78'></i>645</span><span class='chip off'>270 left</span></p><p class='phrase'>long enough for 200 mm, shorter than 280 mm</p><p class='check'>900 + 900 + 890 + 890 + 890 + 645 + kerf 15 + offcut 270 = 5,400</p></div>
+<div class='offcut'><strong>270</strong><span>mm offcut</span><span class='tag keep'>keep</span></div>
+</article>
+<article class='board'>
+<div class='meta'><span class='idx'>Board 9</span><span class='stock'>5400</span><span class='cuts-n'>14 cuts</span></div>
+<div class='viz'><svg class="bar" viewBox="0 0 5400 460" preserveAspectRatio="none" role="img" aria-label="Board 9, 5400 mm, cuts 520, 520, 468, 468, 405, 405, 405, 405, 280, 280, 280, 280, 280, 280, offcut 85 mm"><defs><pattern id="offcut-9" patternUnits="userSpaceOnUse" width="90" height="90" patternTransform="rotate(45)"><rect width="90" height="90" fill="#f4e7d4"/><line x1="0" y1="0" x2="0" y2="90" stroke="#c4a484" stroke-width="28"/></pattern><pattern id="unused-9" patternUnits="userSpaceOnUse" width="120" height="120" patternTransform="rotate(45)"><rect width="120" height="120" fill="#f7f1e6"/><line x1="0" y1="0" x2="0" y2="120" stroke="#d9cbb8" stroke-width="22"/></pattern></defs><line x1="0" y1="448" x2="5400" y2="448" stroke="#e4d9c8" stroke-width="8"/><rect x="0" y="12" width="520" height="420" fill="#6b4a2a"><title>520 mm</title></rect><text x="260.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">520</text><rect x="520" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="521.5" y1="12" x2="521.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="523" y="12" width="520" height="420" fill="#6b4a2a"><title>520 mm</title></rect><text x="783.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">520</text><rect x="1043" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="1044.5" y1="12" x2="1044.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="1046" y="12" width="468" height="420" fill="#3e4c59"><title>468 mm</title></rect><text x="1280.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">468</text><rect x="1514" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="1515.5" y1="12" x2="1515.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="1517" y="12" width="468" height="420" fill="#3e4c59"><title>468 mm</title></rect><text x="1751.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">468</text><rect x="1985" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="1986.5" y1="12" x2="1986.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="1988" y="12" width="405" height="420" fill="#b45309"><title>405 mm</title></rect><rect x="2393" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="2394.5" y1="12" x2="2394.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="2396" y="12" width="405" height="420" fill="#b45309"><title>405 mm</title></rect><rect x="2801" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="2802.5" y1="12" x2="2802.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="2804" y="12" width="405" height="420" fill="#b45309"><title>405 mm</title></rect><rect x="3209" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="3210.5" y1="12" x2="3210.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="3212" y="12" width="405" height="420" fill="#b45309"><title>405 mm</title></rect><rect x="3617" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="3618.5" y1="12" x2="3618.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="3620" y="12" width="280" height="420" fill="#3f6212"><title>280 mm</title></rect><rect x="3900" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="3901.5" y1="12" x2="3901.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="3903" y="12" width="280" height="420" fill="#3f6212"><title>280 mm</title></rect><rect x="4183" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="4184.5" y1="12" x2="4184.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="4186" y="12" width="280" height="420" fill="#3f6212"><title>280 mm</title></rect><rect x="4466" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="4467.5" y1="12" x2="4467.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="4469" y="12" width="280" height="420" fill="#3f6212"><title>280 mm</title></rect><rect x="4749" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="4750.5" y1="12" x2="4750.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="4752" y="12" width="280" height="420" fill="#3f6212"><title>280 mm</title></rect><rect x="5032" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="5033.5" y1="12" x2="5033.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="5035" y="12" width="280" height="420" fill="#3f6212"><title>280 mm</title></rect><rect x="5315" y="12" width="85" height="420" fill="url(#offcut-9)"><title>85 mm offcut</title></rect><rect x="0" y="12" width="5400" height="420" fill="none" stroke="#1f1a14" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg><p class='chips'><span class='chip'><i style='background:#6b4a2a'></i>520</span><span class='chip'><i style='background:#6b4a2a'></i>520</span><span class='chip'><i style='background:#3e4c59'></i>468</span><span class='chip'><i style='background:#3e4c59'></i>468</span><span class='chip'><i style='background:#b45309'></i>405</span><span class='chip'><i style='background:#b45309'></i>405</span><span class='chip'><i style='background:#b45309'></i>405</span><span class='chip'><i style='background:#b45309'></i>405</span><span class='chip'><i style='background:#3f6212'></i>280</span><span class='chip'><i style='background:#3f6212'></i>280</span><span class='chip'><i style='background:#3f6212'></i>280</span><span class='chip'><i style='background:#3f6212'></i>280</span><span class='chip'><i style='background:#3f6212'></i>280</span><span class='chip'><i style='background:#3f6212'></i>280</span><span class='chip off'>85 left</span></p><p class='check'>520 + 520 + 468 + 468 + 405 + 405 + 405 + 405 + 280 + 280 + 280 + 280 + 280 + 280 + kerf 39 + offcut 85 = 5,400</p></div>
+<div class='offcut'><strong>85</strong><span>mm offcut</span><span class='tag short'>too short</span></div>
+</article>
+<article class='board idle'>
+<div class='meta'><span class='idx'>Board 10</span><span class='stock'>5400</span><span class='cuts-n'>leave</span></div>
+<div class='viz'><svg class="bar" viewBox="0 0 5400 460" preserveAspectRatio="none" role="img" aria-label="Board 10, 5400 mm, not cut"><defs><pattern id="offcut-10" patternUnits="userSpaceOnUse" width="90" height="90" patternTransform="rotate(45)"><rect width="90" height="90" fill="#f4e7d4"/><line x1="0" y1="0" x2="0" y2="90" stroke="#c4a484" stroke-width="28"/></pattern><pattern id="unused-10" patternUnits="userSpaceOnUse" width="120" height="120" patternTransform="rotate(45)"><rect width="120" height="120" fill="#f7f1e6"/><line x1="0" y1="0" x2="0" y2="120" stroke="#d9cbb8" stroke-width="22"/></pattern></defs><line x1="0" y1="448" x2="5400" y2="448" stroke="#e4d9c8" stroke-width="8"/><rect x="0" y="12" width="5400" height="420" fill="url(#unused-10)"><title>not cut, 5400 mm</title></rect><text x="2700.0" y="285.0" text-anchor="middle" fill="#6d6256" font-size="180">not cut</text><rect x="0" y="12" width="5400" height="420" fill="none" stroke="#1f1a14" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg><p class='chips'><span class='chip quiet'>no cuts</span></p><p class='check'>not cut — 5,400 mm left whole (spreadsheet leftover 5,403 mm)</p></div>
+<div class='offcut'><strong>—</strong><span>leave</span></div>
+</article>
+<article class='board idle'>
+<div class='meta'><span class='idx'>Board 11</span><span class='stock'>5400</span><span class='cuts-n'>leave</span></div>
+<div class='viz'><svg class="bar" viewBox="0 0 5400 460" preserveAspectRatio="none" role="img" aria-label="Board 11, 5400 mm, not cut"><defs><pattern id="offcut-11" patternUnits="userSpaceOnUse" width="90" height="90" patternTransform="rotate(45)"><rect width="90" height="90" fill="#f4e7d4"/><line x1="0" y1="0" x2="0" y2="90" stroke="#c4a484" stroke-width="28"/></pattern><pattern id="unused-11" patternUnits="userSpaceOnUse" width="120" height="120" patternTransform="rotate(45)"><rect width="120" height="120" fill="#f7f1e6"/><line x1="0" y1="0" x2="0" y2="120" stroke="#d9cbb8" stroke-width="22"/></pattern></defs><line x1="0" y1="448" x2="5400" y2="448" stroke="#e4d9c8" stroke-width="8"/><rect x="0" y="12" width="5400" height="420" fill="url(#unused-11)"><title>not cut, 5400 mm</title></rect><text x="2700.0" y="285.0" text-anchor="middle" fill="#6d6256" font-size="180">not cut</text><rect x="0" y="12" width="5400" height="420" fill="none" stroke="#1f1a14" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg><p class='chips'><span class='chip quiet'>no cuts</span></p><p class='check'>not cut — 5,400 mm left whole (spreadsheet leftover 5,403 mm)</p></div>
+<div class='offcut'><strong>—</strong><span>leave</span></div>
+</article>
+</div><div class='length-group'><h3>3,835 mm boards</h3><article class='board'>
+<div class='meta'><span class='idx'>Board 12</span><span class='stock'>3835</span><span class='cuts-n'>3 cuts</span></div>
+<div class='viz'><svg class="bar" viewBox="0 0 5400 460" preserveAspectRatio="none" role="img" aria-label="Board 12, 3835 mm, cuts 1430, 1430, 945, offcut 24 mm"><defs><pattern id="offcut-12" patternUnits="userSpaceOnUse" width="90" height="90" patternTransform="rotate(45)"><rect width="90" height="90" fill="#f4e7d4"/><line x1="0" y1="0" x2="0" y2="90" stroke="#c4a484" stroke-width="28"/></pattern><pattern id="unused-12" patternUnits="userSpaceOnUse" width="120" height="120" patternTransform="rotate(45)"><rect width="120" height="120" fill="#f7f1e6"/><line x1="0" y1="0" x2="0" y2="120" stroke="#d9cbb8" stroke-width="22"/></pattern></defs><line x1="0" y1="448" x2="5400" y2="448" stroke="#e4d9c8" stroke-width="8"/><rect x="0" y="12" width="1430" height="420" fill="#d85a1a"><title>1430 mm</title></rect><text x="715.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1430</text><rect x="1430" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="1431.5" y1="12" x2="1431.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="1433" y="12" width="1430" height="420" fill="#d85a1a"><title>1430 mm</title></rect><text x="2148.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1430</text><rect x="2863" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="2864.5" y1="12" x2="2864.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="2866" y="12" width="945" height="420" fill="#0f766e"><title>945 mm</title></rect><text x="3338.5" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">945</text><rect x="3811" y="12" width="24" height="420" fill="url(#offcut-12)"><title>24 mm offcut</title></rect><rect x="0" y="12" width="3835" height="420" fill="none" stroke="#1f1a14" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg><p class='chips'><span class='chip'><i style='background:#d85a1a'></i>1430</span><span class='chip'><i style='background:#d85a1a'></i>1430</span><span class='chip'><i style='background:#0f766e'></i>945</span><span class='chip off'>24 left</span></p><p class='check'>1,430 + 1,430 + 945 + kerf 6 + offcut 24 = 3,835</p></div>
+<div class='offcut'><strong>24</strong><span>mm offcut</span><span class='tag short'>too short</span></div>
+</article>
+</div><div class='length-group'><h3>3,830 mm boards</h3><article class='board'>
+<div class='meta'><span class='idx'>Board 13</span><span class='stock'>3830</span><span class='cuts-n'>2 cuts</span></div>
+<div class='viz'><svg class="bar" viewBox="0 0 5400 460" preserveAspectRatio="none" role="img" aria-label="Board 13, 3830 mm, cuts 1800, 1800, offcut 227 mm"><defs><pattern id="offcut-13" patternUnits="userSpaceOnUse" width="90" height="90" patternTransform="rotate(45)"><rect width="90" height="90" fill="#f4e7d4"/><line x1="0" y1="0" x2="0" y2="90" stroke="#c4a484" stroke-width="28"/></pattern><pattern id="unused-13" patternUnits="userSpaceOnUse" width="120" height="120" patternTransform="rotate(45)"><rect width="120" height="120" fill="#f7f1e6"/><line x1="0" y1="0" x2="0" y2="120" stroke="#d9cbb8" stroke-width="22"/></pattern></defs><line x1="0" y1="448" x2="5400" y2="448" stroke="#e4d9c8" stroke-width="8"/><rect x="0" y="12" width="1800" height="420" fill="#8c2f1b"><title>1800 mm</title></rect><text x="900.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1800</text><rect x="1800" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="1801.5" y1="12" x2="1801.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="1803" y="12" width="1800" height="420" fill="#8c2f1b"><title>1800 mm</title></rect><text x="2703.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1800</text><rect x="3603" y="12" width="227" height="420" fill="url(#offcut-13)"><title>227 mm offcut</title></rect><rect x="0" y="12" width="3830" height="420" fill="none" stroke="#1f1a14" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg><p class='chips'><span class='chip'><i style='background:#8c2f1b'></i>1800</span><span class='chip'><i style='background:#8c2f1b'></i>1800</span><span class='chip off'>227 left</span></p><p class='phrase'>long enough for 200 mm, shorter than 280 mm</p><p class='check'>1,800 + 1,800 + kerf 3 + offcut 227 = 3,830</p></div>
+<div class='offcut'><strong>227</strong><span>mm offcut</span><span class='tag keep'>keep</span></div>
+</article>
+<article class='board'>
+<div class='meta'><span class='idx'>Board 14</span><span class='stock'>3830</span><span class='cuts-n'>3 cuts</span></div>
+<div class='viz'><svg class="bar" viewBox="0 0 5400 460" preserveAspectRatio="none" role="img" aria-label="Board 14, 3830 mm, cuts 1800, 1430, 550, offcut 44 mm"><defs><pattern id="offcut-14" patternUnits="userSpaceOnUse" width="90" height="90" patternTransform="rotate(45)"><rect width="90" height="90" fill="#f4e7d4"/><line x1="0" y1="0" x2="0" y2="90" stroke="#c4a484" stroke-width="28"/></pattern><pattern id="unused-14" patternUnits="userSpaceOnUse" width="120" height="120" patternTransform="rotate(45)"><rect width="120" height="120" fill="#f7f1e6"/><line x1="0" y1="0" x2="0" y2="120" stroke="#d9cbb8" stroke-width="22"/></pattern></defs><line x1="0" y1="448" x2="5400" y2="448" stroke="#e4d9c8" stroke-width="8"/><rect x="0" y="12" width="1800" height="420" fill="#8c2f1b"><title>1800 mm</title></rect><text x="900.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1800</text><rect x="1800" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="1801.5" y1="12" x2="1801.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="1803" y="12" width="1430" height="420" fill="#d85a1a"><title>1430 mm</title></rect><text x="2518.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1430</text><rect x="3233" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="3234.5" y1="12" x2="3234.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="3236" y="12" width="550" height="420" fill="#a33b4a"><title>550 mm</title></rect><text x="3511.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">550</text><rect x="3786" y="12" width="44" height="420" fill="url(#offcut-14)"><title>44 mm offcut</title></rect><rect x="0" y="12" width="3830" height="420" fill="none" stroke="#1f1a14" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg><p class='chips'><span class='chip'><i style='background:#8c2f1b'></i>1800</span><span class='chip'><i style='background:#d85a1a'></i>1430</span><span class='chip'><i style='background:#a33b4a'></i>550</span><span class='chip off'>44 left</span></p><p class='check'>1,800 + 1,430 + 550 + kerf 6 + offcut 44 = 3,830</p></div>
+<div class='offcut'><strong>44</strong><span>mm offcut</span><span class='tag short'>too short</span></div>
+</article>
+</div><div class='length-group'><h3>3,820 mm boards</h3><article class='board'>
+<div class='meta'><span class='idx'>Board 15</span><span class='stock'>3820</span><span class='cuts-n'>3 cuts</span></div>
+<div class='viz'><svg class="bar" viewBox="0 0 5400 460" preserveAspectRatio="none" role="img" aria-label="Board 15, 3820 mm, cuts 1800, 1800, 200, offcut 14 mm"><defs><pattern id="offcut-15" patternUnits="userSpaceOnUse" width="90" height="90" patternTransform="rotate(45)"><rect width="90" height="90" fill="#f4e7d4"/><line x1="0" y1="0" x2="0" y2="90" stroke="#c4a484" stroke-width="28"/></pattern><pattern id="unused-15" patternUnits="userSpaceOnUse" width="120" height="120" patternTransform="rotate(45)"><rect width="120" height="120" fill="#f7f1e6"/><line x1="0" y1="0" x2="0" y2="120" stroke="#d9cbb8" stroke-width="22"/></pattern></defs><line x1="0" y1="448" x2="5400" y2="448" stroke="#e4d9c8" stroke-width="8"/><rect x="0" y="12" width="1800" height="420" fill="#8c2f1b"><title>1800 mm</title></rect><text x="900.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1800</text><rect x="1800" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="1801.5" y1="12" x2="1801.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="1803" y="12" width="1800" height="420" fill="#8c2f1b"><title>1800 mm</title></rect><text x="2703.0" y="285.0" text-anchor="middle" fill="#fffaf3" font-size="180">1800</text><rect x="3603" y="12" width="3" height="420" fill="#1f1a14"><title>3 mm kerf</title></rect><line x1="3604.5" y1="12" x2="3604.5" y2="432" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/><rect x="3606" y="12" width="200" height="420" fill="#57534e"><title>200 mm</title></rect><rect x="3806" y="12" width="14" height="420" fill="url(#offcut-15)"><title>14 mm offcut</title></rect><rect x="0" y="12" width="3820" height="420" fill="none" stroke="#1f1a14" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg><p class='chips'><span class='chip'><i style='background:#8c2f1b'></i>1800</span><span class='chip'><i style='background:#8c2f1b'></i>1800</span><span class='chip'><i style='background:#57534e'></i>200</span><span class='chip off'>14 left</span></p><p class='check'>1,800 + 1,800 + 200 + kerf 6 + offcut 14 = 3,820</p></div>
+<div class='offcut'><strong>14</strong><span>mm offcut</span><span class='tag short'>too short</span></div>
+</article>
+</div>
+  </div>
+</section>
+
+<p class="footnote">An unused board is left whole. The spreadsheet leftover for that row is stock + kerf (the cutter's starting figure), not an offcut. On a cut board the spreadsheet leftover matches the offcut shown here.</p>
+</main>
+<nav class="dock no-print" aria-label="Share this list">
+  <button type="button" id="share-btn">Share</button>
+  <button type="button" id="copy-btn" class="ghost">Copy</button>
+  <button type="button" id="print-btn" class="ghost">Print</button>
+</nav>
+<script>
+function lumberText() {
+  return document.getElementById("lumber-text").textContent;
+}
+function selectLumber(pre) {
+  if (pre.parentElement && pre.parentElement.open === false) pre.parentElement.open = true;
+  var range = document.createRange();
+  range.selectNodeContents(pre);
+  var sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  pre.scrollIntoView({behavior: "smooth", block: "center"});
+}
+document.getElementById("print-btn").addEventListener("click", function () { window.print(); });
+document.getElementById("copy-btn").addEventListener("click", async function () {
+  var button = this;
+  var pre = document.getElementById("lumber-text");
+  try {
+    await navigator.clipboard.writeText(lumberText());
+    button.textContent = "Copied";
+  } catch (err) {
+    selectLumber(pre);
+    button.textContent = "Selected";
+  }
+});
+document.getElementById("share-btn").addEventListener("click", async function () {
+  var button = this;
+  var text = lumberText();
+  if (navigator.share) {
+    try {
+      await navigator.share({title: "Planker lumber list", text: text});
+      button.textContent = "Shared";
+      return;
+    } catch (err) {
+      if (err && err.name === "AbortError") return;
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    button.textContent = "Copied";
+  } catch (err) {
+    selectLumber(document.getElementById("lumber-text"));
+    button.textContent = "Selected";
+  }
+});
+</script>
+<script>
+/* Offline editor for the shop sheet. Pure functions stay above the DOM boot
+   so tests can run them without a browser. The sample job is substituted
+   when the page is generated. */
+var SAMPLE = {"kerf": 3, "available": [[11, 5400], [1, 3835], [1, 3830], [1, 3830], [1, 3820]], "desired": [[5, 1800], [4, 1310], [1, 675], [2, 1320], [4, 890], [4, 280], [2, 468], [2, 280], [4, 1300], [2, 900], [1, 645], [1, 200], [2, 945], [2, 405], [2, 1430], [4, 1300], [2, 1430], [3, 1300], [2, 900], [4, 1300], [2, 520], [2, 945], [2, 405], [2, 945], [1, 550]]};
+var STORAGE_KEY = "planker-edit-v1";
+var CUT_COLOURS = [
+  "#8c2f1b", "#d85a1a", "#c48a00", "#5f7f24", "#1f7a4d", "#0f766e",
+  "#1d6a93", "#2a4e8a", "#5b3f8c", "#8e3a78", "#a33b4a", "#6b4a2a",
+  "#3e4c59", "#b45309", "#3f6212", "#57534e"
+];
+
+function expandRows(rows) {
+  var out = [];
+  rows.forEach(function (row) {
+    var count = row[0];
+    var length = row[1];
+    for (var i = 0; i < count; i++) out.push(length);
+  });
+  return out;
+}
+
+function allocateGreedy(pieces, cuts, kerf) {
+  var allocated = pieces.map(function () { return []; });
+  var unallocated = [];
+  var leftover = pieces.map(function (length) { return length + kerf; });
+  cuts.forEach(function (want) {
+    var need = want + kerf;
+    var bestI = -1;
+    var bestRemain = Infinity;
+    for (var i = 0; i < leftover.length; i++) {
+      var remain = leftover[i];
+      if (remain >= need && remain < bestRemain) {
+        bestRemain = remain;
+        bestI = i;
+      }
+    }
+    if (bestI >= 0) {
+      allocated[bestI].push(want);
+      leftover[bestI] -= need;
+    } else {
+      unallocated.push(want);
+    }
+  });
+  return { allocated: allocated, unallocated: unallocated, leftover: leftover };
+}
+
+function buildPlan(job) {
+  var stocks = expandRows(job.available);
+  var desired = expandRows(job.desired).slice().sort(function (a, b) { return b - a; });
+  var cut = allocateGreedy(stocks, desired, job.kerf);
+  var boards = stocks.map(function (stock, index) {
+    return {
+      index: index + 1,
+      stock: stock,
+      cuts: cut.allocated[index],
+      leftover: cut.leftover[index]
+    };
+  });
+  return { boards: boards, unallocated: cut.unallocated, desired: desired };
+}
+
+function countsOf(lengths) {
+  var map = new Map();
+  lengths.forEach(function (length) {
+    map.set(length, (map.get(length) || 0) + 1);
+  });
+  return Array.from(map.entries()).sort(function (a, b) { return b[0] - a[0]; });
+}
+
+function metres(mm) {
+  var sign = mm < 0 ? "-" : "";
+  var abs = Math.abs(mm);
+  var whole = Math.floor(abs / 1000);
+  var frac = abs % 1000;
+  return sign + whole + "." + String(frac).padStart(3, "0") + " m";
+}
+
+function mmText(mm) {
+  return mm.toLocaleString("en-US") + " mm";
+}
+
+function esc(value) {
+  return String(value).replace(/[&<>"']/g, function (ch) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
+  });
+}
+
+function colourMap(lengths) {
+  var unique = Array.from(new Set(lengths)).sort(function (a, b) { return b - a; });
+  var map = {};
+  unique.forEach(function (length, index) {
+    map[length] = CUT_COLOURS[index % CUT_COLOURS.length];
+  });
+  return map;
+}
+
+function offcutPhrase(leftover, pieceLengths) {
+  var lengths = Array.from(new Set(pieceLengths)).sort(function (a, b) { return a - b; });
+  if (leftover <= 0 || !lengths.length) return "no offcut";
+  var fits = lengths.filter(function (length) { return length <= leftover; });
+  var longer = lengths.filter(function (length) { return length > leftover; });
+  if (!fits.length) {
+    return "too short for a " + lengths[0].toLocaleString("en-US") + " mm piece, the shortest on this job";
+  }
+  var longestFit = fits[fits.length - 1];
+  if (longer.length) {
+    return "long enough for " + longestFit.toLocaleString("en-US") + " mm, shorter than " + longer[0].toLocaleString("en-US") + " mm";
+  }
+  return "long enough for " + longestFit.toLocaleString("en-US") + " mm, the longest piece on this job";
+}
+
+function lumberLines(job, plan) {
+  var lines = [
+    "PLANKER LUMBER LIST",
+    "Kerf: " + job.kerf + " mm between cuts on the same board",
+    "",
+    "PULL"
+  ];
+  var used = plan.boards.filter(function (board) { return board.cuts.length; });
+  var pulls = countsOf(used.map(function (board) { return board.stock; }));
+  if (pulls.length) {
+    pulls.forEach(function (pair) {
+      lines.push(pair[1] + " x " + pair[0] + " mm (" + metres(pair[0]) + ")");
+    });
+    var totalMm = used.reduce(function (sum, board) { return sum + board.stock; }, 0);
+    var totalN = pulls.reduce(function (sum, pair) { return sum + pair[1]; }, 0);
+    lines.push("Total: " + totalN + " boards, " + totalMm + " mm (" + metres(totalMm) + ")");
+  } else {
+    lines.push("none");
+  }
+  lines.push("", "LEAVE");
+  var leaves = countsOf(plan.boards.filter(function (board) { return !board.cuts.length; }).map(function (board) { return board.stock; }));
+  if (leaves.length) {
+    leaves.forEach(function (pair) {
+      lines.push(pair[1] + " x " + pair[0] + " mm (" + metres(pair[0]) + ")");
+    });
+  } else {
+    lines.push("none");
+  }
+  lines.push("", "DOES NOT FIT");
+  var missing = countsOf(plan.unallocated);
+  if (missing.length) {
+    missing.forEach(function (pair) {
+      lines.push(pair[1] + " x " + pair[0] + " mm");
+    });
+    lines.push("These are piece lengths from desired, not a board to order.");
+  } else {
+    lines.push("none");
+  }
+  lines.push("");
+  return lines.join("\n");
+}
+
+function rulerHtml(maxMm) {
+  if (!maxMm) return "";
+  var labels = [0];
+  var tick;
+  for (tick = 1000; tick < maxMm; tick += 1000) {
+    if (maxMm - tick >= 800) labels.push(tick);
+  }
+  if (labels[labels.length - 1] !== maxMm) labels.push(maxMm);
+  var seen = {};
+  var ticks = "";
+  var list = [];
+  for (tick = 0; tick <= maxMm; tick += 500) list.push(tick);
+  list.push(maxMm);
+  list.forEach(function (mark) {
+    if (seen[mark] || mark > maxMm) return;
+    seen[mark] = true;
+    var major = mark % 1000 === 0 || mark === maxMm;
+    var pct = (100 * mark / maxMm).toFixed(4);
+    ticks += '<i class="' + (major ? "major" : "minor") + '" style="left:' + pct + '%"></i>';
+  });
+  var marks = labels.map(function (mark) {
+    var pct = (100 * mark / maxMm).toFixed(4);
+    var cls = mark === 0 ? "start" : mark === maxMm ? "end" : "mid";
+    return '<span class="' + cls + '" style="left:' + pct + '%">' + mark + "</span>";
+  }).join("");
+  return '<div class="board ruler-row"><div class="meta"></div><div class="viz"><div class="ruler" aria-hidden="true">' + ticks + marks + "</div></div><div></div></div>";
+}
+
+function barSvg(board, kerf, colours, maxMm) {
+  var top = 12;
+  var barH = 420;
+  var height = top + barH + 28;
+  var x = 0;
+  var body = "";
+  var defs =
+    '<pattern id="offcut-' + board.index + '" patternUnits="userSpaceOnUse" width="90" height="90" patternTransform="rotate(45)">' +
+    '<rect width="90" height="90" fill="#f4e7d4"/><line x1="0" y1="0" x2="0" y2="90" stroke="#c4a484" stroke-width="28"/></pattern>' +
+    '<pattern id="unused-' + board.index + '" patternUnits="userSpaceOnUse" width="120" height="120" patternTransform="rotate(45)">' +
+    '<rect width="120" height="120" fill="#f7f1e6"/><line x1="0" y1="0" x2="0" y2="120" stroke="#d9cbb8" stroke-width="22"/></pattern>';
+  if (!board.cuts.length) {
+    body += '<rect x="0" y="' + top + '" width="' + board.stock + '" height="' + barH + '" fill="url(#unused-' + board.index + ')"><title>not cut, ' + board.stock + " mm</title></rect>";
+  } else {
+    board.cuts.forEach(function (cut, index) {
+      var colour = colours[cut] || "#57534e";
+      body += '<rect x="' + x + '" y="' + top + '" width="' + cut + '" height="' + barH + '" fill="' + colour + '"><title>' + cut + " mm</title></rect>";
+      x += cut;
+      if (index !== board.cuts.length - 1) {
+        body += '<rect x="' + x + '" y="' + top + '" width="' + kerf + '" height="' + barH + '" fill="#1f1a14"><title>' + kerf + " mm kerf</title></rect>";
+        var mid = x + kerf / 2;
+        body += '<line x1="' + mid + '" y1="' + top + '" x2="' + mid + '" y2="' + (top + barH) + '" stroke="#1a120c" stroke-width="2" vector-effect="non-scaling-stroke"/>';
+        x += kerf;
+      }
+    });
+    var left = board.stock - x;
+    if (left > 0) {
+      body += '<rect x="' + x + '" y="' + top + '" width="' + left + '" height="' + barH + '" fill="url(#offcut-' + board.index + ')"><title>' + left + " mm offcut</title></rect>";
+    }
+  }
+  body += '<rect x="0" y="' + top + '" width="' + board.stock + '" height="' + barH + '" fill="none" stroke="#1f1a14" stroke-width="1.5" vector-effect="non-scaling-stroke"/>';
+  var label = board.cuts.length
+    ? "Board " + board.index + ", " + board.stock + " mm, cuts " + board.cuts.join(", ") + ", offcut " + board.leftover + " mm"
+    : "Board " + board.index + ", " + board.stock + " mm, not cut";
+  return '<svg class="bar" viewBox="0 0 ' + maxMm + " " + height + '" preserveAspectRatio="none" role="img" aria-label="' + esc(label) + '"><defs>' + defs + "</defs>" +
+    '<line x1="0" y1="' + (top + barH + 16) + '" x2="' + maxMm + '" y2="' + (top + barH + 16) + '" stroke="#e4d9c8" stroke-width="8"/>' +
+    body + "</svg>";
+}
+
+function checkLine(board, kerf) {
+  if (!board.cuts.length) {
+    return "not cut — " + mmText(board.stock) + " left whole (spreadsheet leftover " + mmText(board.leftover) + ")";
+  }
+  var parts = board.cuts.map(function (cut) { return cut.toLocaleString("en-US"); });
+  var spans = Math.max(0, board.cuts.length - 1);
+  if (spans) parts.push("kerf " + (kerf * spans).toLocaleString("en-US"));
+  var left = board.leftover;
+  parts.push("offcut " + left.toLocaleString("en-US"));
+  return parts.join(" + ") + " = " + board.stock.toLocaleString("en-US");
+}
+
+function chipsHtml(board, colours) {
+  if (!board.cuts.length) return "<p class='chips'><span class='chip quiet'>no cuts</span></p>";
+  var html = board.cuts.map(function (cut) {
+    return "<span class='chip'><i style='background:" + (colours[cut] || "#57534e") + "'></i>" + cut + "</span>";
+  }).join("");
+  if (board.leftover) html += "<span class='chip off'>" + board.leftover + " left</span>";
+  return "<p class='chips'>" + html + "</p>";
+}
+
+function paint(job) {
+  var plan = buildPlan(job);
+  var colours = colourMap(plan.desired);
+  var used = plan.boards.filter(function (board) { return board.cuts.length; });
+  var unused = plan.boards.filter(function (board) { return !board.cuts.length; });
+  var pulls = countsOf(used.map(function (board) { return board.stock; }));
+  var leaves = countsOf(unused.map(function (board) { return board.stock; }));
+  var missing = countsOf(plan.unallocated);
+  var onHand = countsOf(plan.boards.map(function (board) { return board.stock; }));
+  var pullMap = new Map(pulls);
+  var leaveMap = new Map(leaves);
+  var placedN = used.reduce(function (sum, board) { return sum + board.cuts.length; }, 0);
+  var offcutMm = used.reduce(function (sum, board) { return sum + board.leftover; }, 0);
+  var kerfTotal = plan.boards.reduce(function (sum, board) {
+    return sum + job.kerf * Math.max(0, board.cuts.length - 1);
+  }, 0);
+  var onHandMm = plan.boards.reduce(function (sum, board) { return sum + board.stock; }, 0);
+  var desiredMm = plan.desired.reduce(function (sum, length) { return sum + length; }, 0);
+  var missingN = plan.unallocated.length;
+  var pullN = pulls.reduce(function (sum, pair) { return sum + pair[1]; }, 0);
+  var leaveN = leaves.reduce(function (sum, pair) { return sum + pair[1]; }, 0);
+
+  var stats = document.getElementById("stats");
+  if (stats) {
+    stats.innerHTML =
+      "<div><dt>Pull</dt><dd>" + pullN + " <small>boards</small></dd></div>" +
+      "<div><dt>Leave</dt><dd>" + leaveN + " <small>boards</small></dd></div>" +
+      "<div><dt>Placed</dt><dd>" + placedN + " <small>pieces</small></dd></div>" +
+      "<div class='" + (missingN ? "bad" : "ok") + "'><dt>Not placed</dt><dd>" + missingN + " <small>pieces</small></dd></div>";
+  }
+  var summary = document.getElementById("summary-note");
+  if (summary) {
+    summary.textContent =
+      "On hand: " + plan.boards.length + " boards, " + mmText(onHandMm) + " (" + metres(onHandMm) + "). " +
+      "Project: " + plan.desired.length + " pieces, " + mmText(desiredMm) + " (" + metres(desiredMm) + "). " +
+      "Offcut on pulled boards: " + mmText(offcutMm) + ". Saw kerf: " + mmText(kerfTotal) + ".";
+  }
+
+  var pullHtml = pulls.map(function (pair) {
+    return "<li><label><input type='checkbox'><span class='count'>" + pair[1] +
+      "</span><span class='mm'>" + esc(mmText(pair[0])) + "</span><span class='m'>" +
+      esc(metres(pair[0])) + " each</span></label></li>";
+  }).join("");
+  if (!pullHtml) pullHtml = "<li><p class='note'>No board is long enough for a cut.</p></li>";
+  var pullList = document.getElementById("pull-list");
+  if (pullList) pullList.innerHTML = pullHtml;
+  var pullTotal = document.getElementById("pull-total");
+  if (pullTotal) {
+    var pullMm = used.reduce(function (sum, board) { return sum + board.stock; }, 0);
+    pullTotal.textContent = pullN ? (pullN + " boards · " + mmText(pullMm) + " · " + metres(pullMm)) : "";
+  }
+
+  var leaveBlock = document.getElementById("leave-block");
+  if (leaveBlock) {
+    if (leaves.length) {
+      var leaveItems = leaves.map(function (pair) {
+        return "<li><span class='count'>" + pair[1] + "</span><span class='mm'>" + esc(mmText(pair[0])) +
+          "</span><span class='m'>" + esc(metres(pair[0])) + " each</span></li>";
+      }).join("");
+      var leaveMm = unused.reduce(function (sum, board) { return sum + board.stock; }, 0);
+      leaveBlock.innerHTML = "<h3>Leave on the rack</h3><ul class='leave'>" + leaveItems +
+        "</ul><p class='total'>" + leaveN + " boards · " + esc(mmText(leaveMm)) + " · " + esc(metres(leaveMm)) + "</p>";
+    } else {
+      leaveBlock.innerHTML = "<h3>Leave on the rack</h3><p class='note'>Every available board is cut in this plan.</p>";
+    }
+  }
+
+  var missingBlock = document.getElementById("missing-block");
+  if (missingBlock) {
+    if (missing.length) {
+      var bits = missing.map(function (pair) { return pair[1] + " × " + mmText(pair[0]); }).join(", ");
+      missingBlock.innerHTML = "<h3>Pieces that still need a board</h3><p>" + esc(bits) +
+        "</p><p class='note'>These lengths are the pieces from <code>desired</code> that did not fit. This page does not choose a board to buy.</p>";
+    } else {
+      missingBlock.innerHTML = "<p class='note'>Every desired piece is on a board in the cut plan. Nothing further to buy for these cuts.</p>";
+    }
+  }
+
+  var balance = document.getElementById("balance-list");
+  if (balance) {
+    balance.innerHTML = onHand.map(function (pair) {
+      var length = pair[0];
+      return "<li><span class='mm'>" + esc(mmText(length)) + "</span><span class='sub'>On hand " +
+        pair[1] + " · Pull " + (pullMap.get(length) || 0) + " · Leave " + (leaveMap.get(length) || 0) + "</span></li>";
+    }).join("") || "<li><span class='mm'>No available boards.</span></li>";
+  }
+
+  var pre = document.getElementById("lumber-text");
+  if (pre) pre.textContent = lumberLines(job, plan);
+
+  var cutNote = document.getElementById("cut-note");
+  if (cutNote) {
+    cutNote.textContent = "Each bar is one board, to scale with the ruler (millimetres). Board numbers follow the TSV rows. Left to right is the cut order. A short offcut is a thin sliver; the number at the right is its length. The dark line is the " + job.kerf + " mm kerf, drawn at least a hairline so it stays visible. “Too short” means the offcut is shorter than every piece on this job.";
+  }
+  var editNote = document.getElementById("edit-note");
+  if (editNote) {
+    var stockN = job.available.reduce(function (sum, row) { return sum + row[0]; }, 0);
+    var pieceN = job.desired.reduce(function (sum, row) { return sum + row[0]; }, 0);
+    editNote.textContent =
+      job.available.length + " rows, " + stockN + " boards on hand. " +
+      job.desired.length + " rows, " + pieceN + " pieces to cut. " +
+      "Change a count or a length and the list updates. Add a row only when you have a real length to enter.";
+  }
+  var legend = document.getElementById("cut-legend");
+  if (legend) {
+    legend.innerHTML = "<li><i class='key kerf'></i> Kerf " + job.kerf + " mm</li><li><i class='key off'></i> Offcut</li><li><i class='key idle'></i> Board not cut</li>";
+  }
+
+  var maxMm = plan.boards.reduce(function (max, board) { return Math.max(max, board.stock); }, 0);
+  var html = rulerHtml(maxMm);
+  var previous = null;
+  plan.boards.forEach(function (board) {
+    if (board.stock !== previous) {
+      if (previous !== null) html += "</div>";
+      html += "<div class='length-group'><h3>" + esc(mmText(board.stock)) + " boards</h3>";
+      previous = board.stock;
+    }
+    var phrase = "";
+    var offHtml;
+    var meta;
+    var idle = "";
+    if (!board.cuts.length) {
+      offHtml = "<strong>—</strong><span>leave</span>";
+      meta = "leave";
+      idle = " idle";
+    } else {
+      var words = offcutPhrase(board.leftover, plan.desired);
+      var short = words.indexOf("too short") === 0 || words === "no offcut";
+      offHtml = "<strong>" + board.leftover.toLocaleString("en-US") + "</strong><span>mm offcut</span><span class='tag " +
+        (short ? "short" : "keep") + "'>" + (short ? "too short" : "keep") + "</span>";
+      if (!short) phrase = "<p class='phrase'>" + esc(words) + "</p>";
+      meta = board.cuts.length + " cuts";
+    }
+    html += "<article class='board" + idle + "'><div class='meta'><span class='idx'>Board " + board.index +
+      "</span><span class='stock'>" + board.stock + "</span><span class='cuts-n'>" + meta + "</span></div><div class='viz'>" +
+      barSvg(board, job.kerf, colours, maxMm) + chipsHtml(board, colours) + phrase +
+      "<p class='check'>" + esc(checkLine(board, job.kerf)) + "</p></div><div class='offcut'>" + offHtml + "</div></article>";
+  });
+  if (previous !== null) html += "</div>";
+  if (!plan.boards.length) html += "<p class='note'>No available boards.</p>";
+  var cutBody = document.getElementById("cut-body");
+  if (cutBody) cutBody.innerHTML = html;
+}
+
+function rowFields(row) {
+  var count = row ? row[0] : "";
+  var length = row ? row[1] : "";
+  return '<div class="edit-row"><label>Count <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="' +
+    count + '"></label><label>Length mm <input inputmode="numeric" enterkeyhint="done" autocomplete="off" min="1" step="1" value="' +
+    length + '"></label><button type="button" class="remove ghost">Remove</button></div>';
+}
+
+function fillForm(job) {
+  document.getElementById("stock-rows").innerHTML = job.available.map(function (row) { return rowFields(row); }).join("");
+  document.getElementById("piece-rows").innerHTML = job.desired.map(function (row) { return rowFields(row); }).join("");
+  document.getElementById("kerf-input").value = String(job.kerf);
+}
+
+function readRows(container) {
+  var rows = [];
+  container.querySelectorAll(".edit-row").forEach(function (row) {
+    var inputs = row.querySelectorAll("input");
+    var count = parseInt(inputs[0].value, 10);
+    var length = parseInt(inputs[1].value, 10);
+    if (count > 0 && length > 0) rows.push([count, length]);
+  });
+  return rows;
+}
+
+function readJob() {
+  var kerf = parseInt(document.getElementById("kerf-input").value, 10);
+  if (!(kerf >= 0)) return null;
+  return {
+    kerf: kerf,
+    available: readRows(document.getElementById("stock-rows")),
+    desired: readRows(document.getElementById("piece-rows"))
+  };
+}
+
+function validJob(job) {
+  if (!job || typeof job.kerf !== "number" || !(job.kerf >= 0)) return false;
+  if (!Array.isArray(job.available) || !Array.isArray(job.desired)) return false;
+  return job.available.concat(job.desired).every(function (row) {
+    return Array.isArray(row) && row[0] > 0 && row[1] > 0;
+  });
+}
+
+function boot() {
+  var edit = document.getElementById("edit");
+  if (!edit || !SAMPLE) return;
+  var timer = 0;
+  function apply() {
+    var job = readJob();
+    if (!job) return;
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(job)); } catch (err) { /* private mode */ }
+    paint(job);
+  }
+  var editLink = document.querySelector('a[href="#edit"]');
+  if (editLink) {
+    editLink.addEventListener("click", function () { edit.open = true; });
+  }
+  if (location.hash === "#edit") edit.open = true;
+  edit.addEventListener("input", function () {
+    clearTimeout(timer);
+    timer = setTimeout(apply, 150);
+  });
+  edit.addEventListener("click", function (event) {
+    var button = event.target.closest("button");
+    if (!button) return;
+    if (button.classList.contains("remove")) {
+      var row = button.closest(".edit-row");
+      if (row) row.remove();
+      apply();
+    }
+  });
+  document.getElementById("add-stock").addEventListener("click", function () {
+    var box = document.getElementById("stock-rows");
+    box.insertAdjacentHTML("beforeend", rowFields(null));
+    var field = box.querySelector(".edit-row:last-child input");
+    if (field) field.focus();
+  });
+  document.getElementById("add-piece").addEventListener("click", function () {
+    var box = document.getElementById("piece-rows");
+    box.insertAdjacentHTML("beforeend", rowFields(null));
+    var field = box.querySelector(".edit-row:last-child input");
+    if (field) field.focus();
+  });
+  document.getElementById("restore-sample").addEventListener("click", function () {
+    try { localStorage.removeItem(STORAGE_KEY); } catch (err) { /* private mode */ }
+    fillForm(SAMPLE);
+    paint(SAMPLE);
+  });
+  var saved = null;
+  try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null"); } catch (err) { saved = null; }
+  if (validJob(saved)) {
+    fillForm(saved);
+    paint(saved);
+  }
+}
+
+if (typeof document !== "undefined") boot();
+
+</script>
+</body>
+</html>

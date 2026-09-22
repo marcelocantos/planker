@@ -1,0 +1,5 @@
+{
+  "note": "SYNTHETIC fixture for tests. Not a real bill of materials. Lengths are arbitrary.",
+  "available": [[1, 1000], [1, 1000]],
+  "desired": [[1, 600], [1, 500], [1, 900]]
+}
