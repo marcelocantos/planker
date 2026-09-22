@@ -943,9 +943,9 @@ document.getElementById("copy-btn").addEventListener("click", async function () 
     var sel = window.getSelection();
     sel.removeAllRanges();
     sel.addRange(range);
+    pre.scrollIntoView({{behavior: "smooth", block: "center"}});
     button.textContent = "Selected — press copy";
   }}
-  setTimeout(function () {{ button.textContent = "Copy lumber list"; }}, 2000);
 }});
 </script>
 </body>
